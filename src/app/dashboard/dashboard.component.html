@@ -90,30 +90,33 @@
     <div class="flex items-center justify-between mt-4">
       <div>
         Page <span class="font-semibold">{{ page() }}</span> /
-        <span class="font-semibold">{{ Math.ceil(total() / limit()) || 1 }}</span>
+        <span class="font-semibold">{{ Math.ceil(total() / limitValue) || 1 }}</span>
         ({{ total() }} results)
       </div>
       <div class="flex items-center gap-2">
         <button [disabled]="page() === 1" (click)="onPageChange(1)" class="px-2 py-1 border rounded">First</button>
         <button [disabled]="page() === 1" (click)="onPageChange(page()-1)" class="px-2 py-1 border rounded">Prev</button>
-        <button [disabled]="page() >= Math.ceil(total()/limit())" (click)="onPageChange(page()+1)" class="px-2 py-1 border rounded">Next</button>
-        <button [disabled]="page() >= Math.ceil(total()/limit())" (click)="onPageChange(Math.ceil(total()/limit()))" class="px-2 py-1 border rounded">Last</button>
-        <select [(ngModel)]="limit()" (change)="onLimitChange(limit())" class="ml-2 p-1 rounded border">
+        <button [disabled]="page() >= Math.ceil(total()/limitValue)" (click)="onPageChange(page()+1)" class="px-2 py-1 border rounded">Next</button>
+        <button [disabled]="page() >= Math.ceil(total()/limitValue)" (click)="onPageChange(Math.ceil(total()/limitValue))" class="px-2 py-1 border rounded">Last</button>
+        <select [(ngModel)]="limitValue" (ngModelChange)="onLimitChange(limitValue)" class="ml-2 p-1 rounded border">
           <option *ngFor="let l of [10,20,50,100]" [value]="l">{{ l }} / page</option>
         </select>
       </div>
     </div>
   
     <!-- Detail Modal -->
-    <div *ngIf="selectedBuilding()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div *ngIf="selectedBuilding() as detail" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full relative">
         <button (click)="closeDetail()" class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl">&times;</button>
         <h2 class="text-2xl font-bold mb-2">Building Details</h2>
         <div class="space-y-1">
-          <div *ngFor="let key of (selectedBuilding() | keyvalue)">
-            <strong>{{ key.key | titlecase }}:</strong>
-            <span>{{ key.value }}</span>
-          </div>
+            <div *ngIf="selectedBuildingObject as detail">
+                <div *ngFor="let key of detail | keyvalue">
+                  <strong>{{ key.key | titlecase }}:</strong>
+                  <span>{{ key.value }}</span>
+                </div>
+              </div>
+              
         </div>
       </div>
     </div>

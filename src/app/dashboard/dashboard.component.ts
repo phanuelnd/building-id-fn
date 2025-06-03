@@ -34,6 +34,7 @@ export class DashboardComponent {
   permitIdFilterValue = '';
   dateFromValue = '';
   dateToValue = '';
+  limitValue = 20;
 
   // For detail modal
   selectedBuilding = signal<Building | null>(null);
@@ -46,6 +47,7 @@ export class DashboardComponent {
 
   fetchBuildings(): void {
     // Sync filter signals with ngModel values before fetching
+    this.limit.set(this.limitValue);
     this.search.set(this.searchValue);
     this.statusFilter.set(this.statusFilterValue);
     this.parcelIdFilter.set(this.parcelIdFilterValue);
@@ -98,7 +100,15 @@ export class DashboardComponent {
     this.fetchBuildings();
   }
 
+// In dashboard.component.ts
+get selectedBuildingObject(): Record<string, any> | null {
+  const b = this.selectedBuilding(); // or this.selectedBuilding(), adapt to your variable
+  return b ? { ...b } : null;
+}
+
+
   onLimitChange(newLimit: number): void {
+    this.limitValue = newLimit;
     this.limit.set(newLimit);
     this.page.set(1);
     this.fetchBuildings();

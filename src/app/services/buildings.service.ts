@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Building } from '../models/building.model';
+import { environment } from '../environments/environment';
 
 export interface BuildingListResponse {
   data: Building[];
@@ -10,7 +11,7 @@ export interface BuildingListResponse {
 
 @Injectable({ providedIn: 'root' })
 export class BuildingsService {
-  private readonly baseUrl = 'http://localhost:3000/buildings';
+  private readonly baseUrl = `${environment.apiBaseUrl}/buildings`;
 
   constructor(private http: HttpClient) {}
 
