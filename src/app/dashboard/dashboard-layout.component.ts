@@ -13,6 +13,7 @@ import { ToastNotificationsComponent, Toast } from './toast-notifications.compon
 import { MapViewComponent, MapBounds } from './map-view.component';
 import { Building } from '../models/building.model';
 import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxjs';
+import { BuildingDetailModalComponent } from './building-detail-modal.component';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -28,6 +29,7 @@ import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxj
     PaginationControlsComponent,
     ExportButtonComponent,
     ToastNotificationsComponent,
+    BuildingDetailModalComponent,
     // MapViewComponent,
   ],
   template: `
@@ -73,7 +75,9 @@ import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxj
           <app-pagination-controls
             [page]="page"
             [totalPages]="totalPages"
+            [pageSize]="pageSize"
             (pageChange)="onPageChange($event)"
+            (pageSizeChange)="onPageSizeChange($event)"
           ></app-pagination-controls>
         </div>
         <app-buildings-table
@@ -94,6 +98,13 @@ import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxj
       <footer class="bg-white text-blue-400 text-center py-4 text-xs shadow-inner">
         &copy; {{ currentYear }} Building Management. All rights reserved.
       </footer>
+
+      <!-- Building Detail Modal -->
+      <app-building-detail-modal
+        *ngIf="selectedBuilding"
+        [building]="selectedBuilding"
+        (close)="selectedBuilding = null"
+      ></app-building-detail-modal>
     </div>
   `,
 })
@@ -130,6 +141,8 @@ export class DashboardLayoutComponent implements OnInit {
   totalPages = 1;
   exportLoading = false;
   toasts: Toast[] = [];
+  pageSize = 20;
+  selectedBuilding: Building | null = null;
 
   constructor(private http: HttpClient) {
     this.setupSearchDebounce();
@@ -145,8 +158,10 @@ export class DashboardLayoutComponent implements OnInit {
         debounceTime(300),
         distinctUntilChanged()
       )
-      .subscribe(() => {
-        this.loadBuildings();
+      .subscribe(searchTerm => {
+        this.search = searchTerm;
+        this.page = 1; // Reset to the first page for a new search
+        this.handleSearch(searchTerm);
       });
   }
 
@@ -157,8 +172,7 @@ export class DashboardLayoutComponent implements OnInit {
     Promise.all([
       this.loadStatistics(),
       this.loadProvinces(),
-      this.loadStatuses(),
-      this.loadBuildings()
+      this.loadBuildings() // Initial load of buildings
     ]).finally(() => {
       this.loading = false;
     });
@@ -174,6 +188,8 @@ export class DashboardLayoutComponent implements OnInit {
       )
       .subscribe(stats => {
         this.stats = stats;
+        // Extract unique statuses from statistics
+        this.statuses = Object.keys(stats.byStatus);
       });
   }
 
@@ -224,16 +240,56 @@ export class DashboardLayoutComponent implements OnInit {
       });
   }
 
-  private loadStatuses() {
-    return this.http.get<string[]>(`${this.apiUrl}/statuses`)
+  private handleSearch(searchTerm: string) {
+    this.loading = true;
+    this.error = null;
+
+    if (searchTerm.trim() === '') {
+      // If search term is empty, load all buildings with current filters
+      this.loadBuildings();
+      return;
+    }
+
+    // Attempt to search by exact building_id first
+    this.http.get<Building>(`${this.apiUrl}/building_id/${searchTerm}`)
       .pipe(
-        catchError(() => {
-          this.showError('Failed to load statuses');
-          return of([]);
+        catchError((err) => {
+          if (err.status === 404) {
+            // If exact building_id not found, fall back to general search
+            this.showError(`Building with ID "${searchTerm}" not found. Performing general search.`);
+            return this.http.get<{ data: Building[], meta: { total: number, currentPage: number, totalPages: number } }>
+              (`${this.apiUrl}?search=${encodeURIComponent(searchTerm)}&page=${this.page}&limit=${this.pageSize}`)
+              .pipe(
+                catchError(() => {
+                  this.showError('Failed to load buildings with general search');
+                  return of({ data: [], meta: { total: 0, currentPage: 1, totalPages: 1 } });
+                })
+              );
+          } else {
+            this.showError('Failed to load building details');
+            return of(null);
+          }
         })
       )
-      .subscribe(statuses => {
-        this.statuses = statuses;
+      .subscribe({
+        next: (response) => {
+          if (response && (response as Building).building_id) { // Check if it's a single Building object
+            this.buildings = [response as Building];
+            this.totalPages = 1;
+            this.page = 1;
+          } else if (response && (response as { data: Building[], meta: any }).data) { // Check if it's a paginated response
+            const paginatedResponse = response as { data: Building[], meta: { total: number, currentPage: number, totalPages: number } };
+            this.buildings = paginatedResponse.data;
+            this.totalPages = paginatedResponse.meta.totalPages;
+            this.page = paginatedResponse.meta.currentPage;
+          } else {
+            this.buildings = [];
+            this.totalPages = 1;
+            this.page = 1;
+          }
+        },
+        error: () => {},
+        complete: () => this.loading = false
       });
   }
 
@@ -241,20 +297,22 @@ export class DashboardLayoutComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    const params = new URLSearchParams({
+    // Build query params as a plain object for Angular HttpClient
+    const params: Record<string, string> = {
       page: this.page.toString(),
-      limit: '20',
+      limit: this.pageSize.toString(),
       sortBy: this.sortBy,
       sortDirection: this.sortDirection,
-      ...(this.search && { search: this.search }),
-      ...(this.province && { province: this.province }),
-      ...(this.district && { district: this.district }),
-      ...(this.sector && { sector: this.sector }),
-      ...(this.selectedStatuses.length && { statusFilter: this.selectedStatuses.join(',') })
-    });
+    };
+
+    if (this.search) params['search'] = this.search;
+    if (this.province) params['province'] = this.province;
+    if (this.district) params['district'] = this.district;
+    if (this.sector) params['sector'] = this.sector;
+    if (this.selectedStatuses.length) params['statusFilter'] = this.selectedStatuses.join(',');
 
     this.http.get<{ data: Building[], meta: { total: number, currentPage: number, totalPages: number } }>
-      (`${this.apiUrl}?${params}`)
+      (`${this.apiUrl}?${new URLSearchParams(params)}`)
       .pipe(
         catchError(() => {
           this.showError('Failed to load buildings');
@@ -264,8 +322,8 @@ export class DashboardLayoutComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.buildings = response.data;
-          this.totalPages = response.meta.totalPages;
-          this.page = response.meta.currentPage;
+          this.totalPages = Number(response.meta.totalPages);
+          this.page = Number(response.meta.currentPage);
         },
         error: (err) => this.showError('Failed to load buildings'),
         complete: () => this.loading = false
@@ -322,20 +380,38 @@ export class DashboardLayoutComponent implements OnInit {
   }
 
   onPageChange(page: number) {
-    this.page = page;
+    this.page = Number(page);
+    this.loadBuildings();
+  }
+
+  onPageSizeChange(newSize: number) {
+    this.pageSize = Number(newSize);
+    this.page = 1; // Reset to first page when changing page size
     this.loadBuildings();
   }
 
   onViewDetail(building: Building) {
-    this.http.get<Building>(`${this.apiUrl}/${building.id}`).subscribe({
-      next: (data) => {
-        this.toasts.push({ 
-          message: `Viewing details for building ${data.building_id}`, 
-          type: 'info' 
-        });
-      },
-      error: (err) => this.showError('Failed to load building details')
-    });
+    this.loading = true;
+    this.error = null;
+    this.http.get<Building>(`${this.apiUrl}/building_id/${building.building_id}`)
+      .pipe(
+        catchError(() => {
+          this.showError('Failed to load building details');
+          return of(null);
+        })
+      )
+      .subscribe(data => {
+        this.loading = false;
+        if (data) {
+          this.selectedBuilding = data;
+          this.toasts.push({ 
+            message: `Viewing details for building ${data.building_id}`, 
+            type: 'info' 
+          });
+        } else {
+          this.showError('Building details not found.');
+        }
+      });
   }
 
   onExport() {

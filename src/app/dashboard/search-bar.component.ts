@@ -1,11 +1,14 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-search-bar',
   standalone: true,
   imports: [CommonModule, FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-6 flex items-center gap-3">
       <div class="relative flex-1">
@@ -29,12 +32,19 @@ export class SearchBarComponent {
   @Input() value: string = '';
   @Input() placeholder: string = 'Search by Building ID or Address';
   @Output() valueChange = new EventEmitter<string>();
-  private debounceTimeout: any;
 
-  onInput(val: string) {
-    clearTimeout(this.debounceTimeout);
-    this.debounceTimeout = setTimeout(() => {
-      this.valueChange.emit(val);
-    }, 300);
+  private inputSubject = new Subject<string>();
+
+  constructor() {
+    this.inputSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged()
+      )
+      .subscribe((val) => this.valueChange.emit(val));
   }
-} 
+
+  onInput(val: string): void {
+    this.inputSubject.next(val);
+  }
+}
