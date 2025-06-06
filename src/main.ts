@@ -1,7 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { DashboardComponent } from './app/dashboard/dashboard.component';
+import { AppComponent } from './app/app.component';
 
-bootstrapApplication(DashboardComponent, {
+bootstrapApplication(AppComponent, {
   providers: [provideHttpClient()],
 });

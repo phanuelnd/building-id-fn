@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { DashboardLayoutComponent } from './dashboard/dashboard-layout.component';  
 
 @Component({
   selector: 'app-root',
+  standalone: true,
+  imports: [DashboardLayoutComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
 })
 export class AppComponent {
   title = 'building-id-fn';
