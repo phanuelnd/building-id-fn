@@ -14,6 +14,7 @@ import { MapViewComponent, MapBounds } from './map-view.component';
 import { Building } from '../models/building.model';
 import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxjs';
 import { BuildingDetailModalComponent } from './building-detail-modal.component';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -109,7 +110,7 @@ import { BuildingDetailModalComponent } from './building-detail-modal.component'
   `,
 })
 export class DashboardLayoutComponent implements OnInit {
-  private apiUrl = 'http://localhost:3000/buildings';
+  private apiUrl = `${environment.apiBaseUrl}/buildings`;
   private searchSubject = new Subject<string>();
   public currentYear = new Date().getFullYear();
 
