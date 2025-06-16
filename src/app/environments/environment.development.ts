@@ -1,6 +1,6 @@
 import { Environment } from './environment.interface';
 
 export const environment: Environment = {
-  production: true,
-  apiBaseUrl: 'https://tbuildingid.mininfra.gov.rw/api',
-};
+  production: false,
+  apiBaseUrl: 'http://localhost:3000/api', // Local development API URL
+}; 

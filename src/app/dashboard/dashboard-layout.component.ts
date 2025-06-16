@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -14,6 +14,7 @@ import { MapViewComponent, MapBounds } from './map-view.component';
 import { Building } from '../models/building.model';
 import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxjs';
 import { BuildingDetailModalComponent } from './building-detail-modal.component';
+import { environment } from '../environments/environment.development';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -109,7 +110,7 @@ import { BuildingDetailModalComponent } from './building-detail-modal.component'
   `,
 })
 export class DashboardLayoutComponent implements OnInit {
-  private apiUrl = 'http://localhost:3000/buildings';
+  private apiUrl = `${environment.apiBaseUrl}/buildings`;
   private searchSubject = new Subject<string>();
   public currentYear = new Date().getFullYear();
 
@@ -144,7 +145,9 @@ export class DashboardLayoutComponent implements OnInit {
   pageSize = 20;
   selectedBuilding: Building | null = null;
 
-  constructor(private http: HttpClient) {
+  private http = inject(HttpClient);
+
+  constructor() {
     this.setupSearchDebounce();
   }
 
