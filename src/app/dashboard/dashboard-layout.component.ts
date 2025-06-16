@@ -35,7 +35,7 @@ import { BuildingDetailModalComponent } from './building-detail-modal.component'
   template: `
     <div class="min-h-screen bg-blue-50 flex flex-col">
       <header class="bg-white shadow-md py-4 px-6 flex items-center justify-between">
-        <h1 class="text-2xl md:text-3xl font-bold text-blue-700 tracking-tight">Building ID Dashboard</h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-blue-700 tracking-tight">Rwanda Building Registry</h1>
       </header>
       <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
         <app-statistics-cards
