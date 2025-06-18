@@ -29,8 +29,8 @@ export class AuthService {
     // Return mock user for demo purposes
     return {
       id: '1',
-      username: 'demo_user',
-      email: 'demo@example.com',
+      username: 'Admin',
+      email: 'admin@mininfra.rw',
       role: 'admin'
     };
   }

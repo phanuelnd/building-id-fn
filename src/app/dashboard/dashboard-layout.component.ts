@@ -44,23 +44,21 @@ import { environment } from '../environments/environment.development';
     <div class="min-h-screen bg-blue-50 flex">
       <!-- Mobile Overlay -->
       <div 
-        *ngIf="sidebarVisible" 
+        *ngIf="sidebarExpanded" 
         class="mobile-overlay fixed inset-0 bg-black bg-opacity-60 z-40 md:hidden"
         (click)="toggleSidebar()"
       ></div>
 
       <!-- Sidebar Navigation -->
-      <div class="sidebar-container" [class.sidebar-hidden]="!sidebarVisible">
-        <app-sidebar-navigation
-          [activeView]="currentView"
-          [sidebarVisible]="sidebarVisible"
-          (viewChange)="onViewChange($event)"
-          (toggleSidebar)="toggleSidebar()"
-        ></app-sidebar-navigation>
-      </div>
+      <app-sidebar-navigation
+        [activeView]="currentView"
+        [sidebarExpanded]="sidebarExpanded"
+        (viewChange)="onViewChange($event)"
+        (toggleSidebar)="toggleSidebar()"
+      ></app-sidebar-navigation>
 
       <!-- Main Content Area -->
-      <div class="flex-1 flex flex-col transition-all duration-300" [class.ml-0]="!sidebarVisible">
+      <div class="flex-1 flex flex-col">
         <!-- Header -->
         <header class="bg-white shadow-md py-6" *ngIf="currentView !== 'logout'">
           <div class="w-full max-w-7xl mx-auto px-4">
@@ -70,7 +68,7 @@ import { environment } from '../environments/environment.development';
             <p class="text-base md:text-lg text-gray-600 font-medium">
               {{ getHeaderSubtitle() }}
             </p>
-          </div>
+                    </div>
         </header>
 
         <!-- Content based on current view -->
@@ -159,65 +157,8 @@ import { environment } from '../environments/environment.development';
         [building]="selectedBuilding"
         (close)="selectedBuilding = null"
       ></app-building-detail-modal>
-    </div>
   `,
   styles: [`
-    .sidebar-container {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      width: 320px;
-      flex-shrink: 0;
-      overflow: hidden;
-    }
-    
-    .sidebar-hidden {
-      transform: translateX(-100%);
-      width: 0;
-      opacity: 0;
-    }
-    
-    .sidebar-container:not(.sidebar-hidden) {
-      animation: slideInFromLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    @keyframes slideInFromLeft {
-      from {
-        transform: translateX(-100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-    
-    @keyframes slideOutToLeft {
-      from {
-        transform: translateX(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateX(-100%);
-        opacity: 0;
-      }
-    }
-    
-    @media (max-width: 768px) {
-      .sidebar-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        z-index: 50;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        backdrop-filter: blur(10px);
-      }
-      
-      .sidebar-hidden {
-        transform: translateX(-100%);
-        width: 320px;
-      }
-    }
-    
     /* Enhanced mobile overlay */
     .mobile-overlay {
       backdrop-filter: blur(4px);
@@ -232,7 +173,7 @@ export class DashboardLayoutComponent implements OnInit {
 
   // Navigation state
   currentView: NavigationView = 'dashboard';
-  sidebarVisible: boolean = true;
+  sidebarExpanded: boolean = true;
 
   // Component state
   stats: BuildingStats = { total: 0, byStatus: {} };
@@ -285,7 +226,7 @@ export class DashboardLayoutComponent implements OnInit {
     }
     // Auto-close sidebar on mobile after navigation
     if (window.innerWidth < 768) {
-      this.sidebarVisible = false;
+      this.sidebarExpanded = false;
     }
   }
 
@@ -335,7 +276,7 @@ export class DashboardLayoutComponent implements OnInit {
 
   // Sidebar toggle method
   toggleSidebar() {
-    this.sidebarVisible = !this.sidebarVisible;
+    this.sidebarExpanded = !this.sidebarExpanded;
   }
 
   private setupSearchDebounce() {
