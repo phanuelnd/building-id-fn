@@ -26,7 +26,7 @@ export type NavigationView = 'dashboard' | 'map' | 'logout';
               [attr.aria-label]="'Toggle sidebar'"
             >
               <!-- Hamburger Icon -->
-              <svg class="w-6 h-6 text-white group-hover:scale-105 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-6 h-6 text-white group-hover:text-blue-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -131,13 +131,13 @@ export type NavigationView = 'dashboard' | 'map' | 'logout';
         </div>
 
         <!-- Collapsed Navigation -->
-        <nav class="flex-1 p-3">
+        <nav class="flex-1 p-3 flex flex-col">
           <div class="space-y-3">
             <!-- Dashboard Icon -->
             <button
               (click)="onNavigate('dashboard')"
               [class]="getCollapsedButtonClass('dashboard')"
-              class="w-12 h-12 rounded-xl transition-all duration-300 group hover:shadow-lg flex items-center justify-center"
+              class="w-14 h-14 rounded-xl transition-all duration-300 group hover:shadow-lg flex items-center justify-center"
               [attr.aria-label]="'Building Dashboard'"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,12 +150,30 @@ export type NavigationView = 'dashboard' | 'map' | 'logout';
             <button
               (click)="onNavigate('map')"
               [class]="getCollapsedButtonClass('map')"
-              class="w-12 h-12 rounded-xl transition-all duration-300 group hover:shadow-lg flex items-center justify-center"
+              class="w-14 h-14 rounded-xl transition-all duration-300 group hover:shadow-lg flex items-center justify-center"
               [attr.aria-label]="'Interactive Map'"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Spacer to push logout icon a bit below the other icons, but not all the way to the bottom -->
+          <div style="height: 2.5rem;"></div>
+
+          <!-- Logout Icon -->
+          <div class="border-t border-gray-200 pt-3 mt-3">
+            <button
+              (click)="onNavigate('logout')"
+              [class]="getCollapsedButtonClass('logout')"
+              class="w-14 h-14 rounded-xl transition-all duration-300 group hover:shadow-lg flex items-center justify-center"
+              [attr.aria-label]="'Sign Out'"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>
           </div>
@@ -188,7 +206,7 @@ export class SidebarNavigationComponent implements OnInit {
   getSidebarClasses(): string {
     const baseClasses = 'bg-white shadow-2xl h-full flex flex-col relative border-r border-gray-100 transition-all duration-300';
     const expandedWidth = 'w-80';
-    const collapsedWidth = 'w-16';
+    const collapsedWidth = 'w-28';
     const mobileClasses = 'md:relative fixed z-50 md:z-auto';
     
     return `${baseClasses} ${this.sidebarExpanded ? expandedWidth : collapsedWidth} ${mobileClasses}`;
@@ -218,6 +236,11 @@ export class SidebarNavigationComponent implements OnInit {
       return this.activeView === view 
         ? 'bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-md'
         : 'bg-gray-50 text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 border border-gray-200';
+    }
+    if (view === 'logout') {
+      return this.activeView === view 
+        ? 'bg-red-100 text-red-600 border border-red-200 shadow-md'
+        : 'bg-gray-50 text-red-500 hover:bg-red-50 hover:text-red-600 border border-gray-200';
     }
     return 'bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200';
   }

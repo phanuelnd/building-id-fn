@@ -60,15 +60,15 @@ import { environment } from '../environments/environment.development';
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col">
         <!-- Header -->
-        <header class="bg-white shadow-md py-6" *ngIf="currentView !== 'logout'">
+        <header class="bg-gradient-to-b from-blue-50 via-white to-white shadow-md py-6" *ngIf="currentView !== 'logout'">
           <div class="w-full max-w-7xl mx-auto px-4">
-            <h1 class="text-3xl md:text-4xl font-bold text-blue-700 tracking-tight mb-2">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-500 tracking-tight mb-2">
               {{ getHeaderTitle() }}
             </h1>
-            <p class="text-base md:text-lg text-gray-600 font-medium">
+            <p class="text-base md:text-lg text-gray-500 font-medium">
               {{ getHeaderSubtitle() }}
             </p>
-                    </div>
+          </div>
         </header>
 
         <!-- Content based on current view -->
