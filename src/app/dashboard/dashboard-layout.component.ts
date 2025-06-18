@@ -14,6 +14,10 @@ import { MapViewComponent, MapBounds } from './map-view.component';
 import { Building } from '../models/building.model';
 import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxjs';
 import { BuildingDetailModalComponent } from './building-detail-modal.component';
+import { SidebarNavigationComponent, NavigationView } from './sidebar-navigation.component';
+import { BuildingMapViewComponent } from './building-map-view.component';
+import { LogoutConfirmationComponent } from './logout-confirmation.component';
+import { AuthService } from '../services/auth.service';
 import { environment } from '../environments/environment.development';
 
 @Component({
@@ -31,81 +35,123 @@ import { environment } from '../environments/environment.development';
     ExportButtonComponent,
     ToastNotificationsComponent,
     BuildingDetailModalComponent,
-    // MapViewComponent,
+    SidebarNavigationComponent,
+    BuildingMapViewComponent,
+    LogoutConfirmationComponent,
+    MapViewComponent,
   ],
   template: `
-    <div class="min-h-screen bg-blue-50 flex flex-col">
-      <header class="bg-white shadow-md py-6">
-        <div class="w-full max-w-7xl mx-auto px-4">
-          <h1 class="text-3xl md:text-4xl font-bold text-blue-700 tracking-tight mb-2">
-            Building ID Dashboard
-          </h1>
-          <p class="text-base md:text-lg text-gray-600 font-medium">
-            Welcome! Explore, search, and manage building data with ease.
-          </p>
-        </div>
-      </header>
-      <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
-        <app-statistics-cards
-          [stats]="stats"
-          (filterByStatus)="onStatusCardClick($event)"
-        ></app-statistics-cards>
-        <app-location-filters
-          [provinces]="provinces"
-          [districts]="districts"
-          [sectors]="sectors"
-          [province]="province"
-          [district]="district"
-          [sector]="sector"
-          (provinceChange)="onProvinceChange($event)"
-          (districtChange)="onDistrictChange($event)"
-          (sectorChange)="onSectorChange($event)"
-        ></app-location-filters>
-        <app-status-multi-select
-          [statuses]="statuses"
-          [selectedStatuses]="selectedStatuses"
-          (selectionChange)="onStatusChange($event)"
-        ></app-status-multi-select>
-        <app-search-bar
-          [value]="search"
-          (valueChange)="onSearchChange($event)"
-        ></app-search-bar>
-        <!-- <app-map-view
-          [buildings]="buildings"
-          (selectBuilding)="onSelectBuilding($event)"
-          (boundsChange)="onMapBoundsChange($event)"
-        ></app-map-view> -->
-        <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-          <app-export-button
-            [loading]="exportLoading"
-            (exportClick)="onExport()"
-          ></app-export-button>
-          <app-pagination-controls
-            [page]="page"
-            [totalPages]="totalPages"
-            [pageSize]="pageSize"
-            (pageChange)="onPageChange($event)"
-            (pageSizeChange)="onPageSizeChange($event)"
-          ></app-pagination-controls>
-        </div>
-        <app-buildings-table
-          [buildings]="buildings"
-          [columns]="columns"
-          [loading]="loading"
-          [error]="error"
-          [sortBy]="sortBy"
-          [sortDirection]="sortDirection"
-          (sort)="onSort($event)"
-          (viewDetail)="onViewDetail($event)"
-        ></app-buildings-table>
-        <app-toast-notifications
-          [toasts]="toasts"
-          (dismiss)="onDismissToast($event)"
-        ></app-toast-notifications>
-      </main>
-      <footer class="bg-white text-blue-400 text-center py-4 text-xs shadow-inner">
-        &copy; {{ currentYear }} Building Management. All rights reserved.
-      </footer>
+    <div class="min-h-screen bg-blue-50 flex">
+      <!-- Mobile Overlay -->
+      <div 
+        *ngIf="sidebarVisible" 
+        class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+        (click)="toggleSidebar()"
+      ></div>
+
+      <!-- Sidebar Navigation -->
+      <div class="sidebar-container" [class.sidebar-hidden]="!sidebarVisible">
+        <app-sidebar-navigation
+          [activeView]="currentView"
+          [sidebarVisible]="sidebarVisible"
+          (viewChange)="onViewChange($event)"
+          (toggleSidebar)="toggleSidebar()"
+        ></app-sidebar-navigation>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col transition-all duration-300" [class.ml-0]="!sidebarVisible">
+        <!-- Header -->
+        <header class="bg-white shadow-md py-6" *ngIf="currentView !== 'logout'">
+          <div class="w-full max-w-7xl mx-auto px-4">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-700 tracking-tight mb-2">
+              {{ getHeaderTitle() }}
+            </h1>
+            <p class="text-base md:text-lg text-gray-600 font-medium">
+              {{ getHeaderSubtitle() }}
+            </p>
+          </div>
+        </header>
+
+        <!-- Content based on current view -->
+        <main class="flex-1" [ngSwitch]="currentView">
+          <!-- Dashboard View -->
+          <div *ngSwitchCase="'dashboard'" class="w-full max-w-7xl mx-auto px-4 py-8">
+            <app-statistics-cards
+              [stats]="stats"
+              (filterByStatus)="onStatusCardClick($event)"
+            ></app-statistics-cards>
+            <app-location-filters
+              [provinces]="provinces"
+              [districts]="districts"
+              [sectors]="sectors"
+              [province]="province"
+              [district]="district"
+              [sector]="sector"
+              (provinceChange)="onProvinceChange($event)"
+              (districtChange)="onDistrictChange($event)"
+              (sectorChange)="onSectorChange($event)"
+            ></app-location-filters>
+            <app-status-multi-select
+              [statuses]="statuses"
+              [selectedStatuses]="selectedStatuses"
+              (selectionChange)="onStatusChange($event)"
+            ></app-status-multi-select>
+            <app-search-bar
+              [value]="search"
+              (valueChange)="onSearchChange($event)"
+            ></app-search-bar>
+            <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+              <app-export-button
+                [loading]="exportLoading"
+                (exportClick)="onExport()"
+              ></app-export-button>
+              <app-pagination-controls
+                [page]="page"
+                [totalPages]="totalPages"
+                [pageSize]="pageSize"
+                (pageChange)="onPageChange($event)"
+                (pageSizeChange)="onPageSizeChange($event)"
+              ></app-pagination-controls>
+            </div>
+            <app-buildings-table
+              [buildings]="buildings"
+              [columns]="columns"
+              [loading]="loading"
+              [error]="error"
+              [sortBy]="sortBy"
+              [sortDirection]="sortDirection"
+              (sort)="onSort($event)"
+              (viewDetail)="onViewDetail($event)"
+            ></app-buildings-table>
+          </div>
+
+          <!-- Map View -->
+          <div *ngSwitchCase="'map'" class="h-full">
+            <app-building-map-view></app-building-map-view>
+          </div>
+
+          <!-- Logout View -->
+          <div *ngSwitchCase="'logout'" class="h-full">
+            <app-logout-confirmation
+              (cancel)="onLogoutCancel()"
+              (logout)="onLogoutConfirm()"
+              (lockScreen)="onLockScreen()"
+            ></app-logout-confirmation>
+          </div>
+        </main>
+
+        <!-- Footer (only show for dashboard and map views) -->
+        <footer class="bg-white text-blue-400 text-center py-4 text-xs shadow-inner" *ngIf="currentView !== 'logout'">
+          &copy; {{ currentYear }} Building Management. All rights reserved.
+        </footer>
+      </div>
+
+      <!-- Toast Notifications (global) -->
+      <app-toast-notifications
+        [toasts]="toasts"
+        (dismiss)="onDismissToast($event)"
+      ></app-toast-notifications>
 
       <!-- Building Detail Modal -->
       <app-building-detail-modal
@@ -115,11 +161,43 @@ import { environment } from '../environments/environment.development';
       ></app-building-detail-modal>
     </div>
   `,
+  styles: [`
+    .sidebar-container {
+      transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+      width: 256px;
+      flex-shrink: 0;
+    }
+    
+    .sidebar-hidden {
+      transform: translateX(-100%);
+      width: 0;
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 50;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      .sidebar-hidden {
+        transform: translateX(-100%);
+        width: 256px;
+      }
+    }
+  `]
 })
 export class DashboardLayoutComponent implements OnInit {
   private apiUrl = `${environment.apiBaseUrl}/buildings`;
   private searchSubject = new Subject<string>();
   public currentYear = new Date().getFullYear();
+
+  // Navigation state
+  currentView: NavigationView = 'dashboard';
+  sidebarVisible: boolean = true;
 
   // Component state
   stats: BuildingStats = { total: 0, byStatus: {} };
@@ -153,6 +231,7 @@ export class DashboardLayoutComponent implements OnInit {
   selectedBuilding: Building | null = null;
 
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
 
   constructor() {
     this.setupSearchDebounce();
@@ -160,6 +239,68 @@ export class DashboardLayoutComponent implements OnInit {
 
   ngOnInit() {
     this.loadInitialData();
+  }
+
+  // Navigation methods
+  onViewChange(view: NavigationView) {
+    this.currentView = view;
+    if (view === 'dashboard') {
+      // Reload dashboard data when switching back
+      this.loadInitialData();
+    }
+    // Auto-close sidebar on mobile after navigation
+    if (window.innerWidth < 768) {
+      this.sidebarVisible = false;
+    }
+  }
+
+  getHeaderTitle(): string {
+    switch (this.currentView) {
+      case 'dashboard':
+        return 'Building ID Dashboard';
+      case 'map':
+        return 'Building Map View';
+      default:
+        return 'Building Management';
+    }
+  }
+
+  getHeaderSubtitle(): string {
+    switch (this.currentView) {
+      case 'dashboard':
+        return 'Welcome! Explore, search, and manage building data with ease.';
+      case 'map':
+        return 'Interactive map view with detailed building information.';
+      default:
+        return 'Building Management System';
+    }
+  }
+
+  // Logout methods
+  onLogoutCancel() {
+    this.currentView = 'dashboard';
+    this.toasts.push({ message: 'Logout cancelled', type: 'info' });
+  }
+
+  onLogoutConfirm() {
+    this.authService.logout();
+    this.toasts.push({ message: 'Successfully logged out!', type: 'success' });
+    // In a real application, you would redirect to login page
+    setTimeout(() => {
+      this.currentView = 'dashboard';
+      this.toasts.push({ message: 'Demo: Would redirect to login page', type: 'info' });
+    }, 2000);
+  }
+
+  onLockScreen() {
+    this.authService.lockScreen();
+    this.currentView = 'dashboard';
+    this.toasts.push({ message: 'Screen locked (Demo feature)', type: 'info' });
+  }
+
+  // Sidebar toggle method
+  toggleSidebar() {
+    this.sidebarVisible = !this.sidebarVisible;
   }
 
   private setupSearchDebounce() {
