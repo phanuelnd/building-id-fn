@@ -88,11 +88,10 @@ export type NavigationView = 'dashboard' | 'map' | 'logout';
                 <p class="text-sm text-gray-500 group-hover:text-gray-600">View buildings on map</p>
               </div>
             </button>
-          </div>
 
-          <!-- Logout Section -->
-          <div class="absolute bottom-6 left-6 right-6">
-            <div class="border-t border-gray-200 pt-6">
+            <div class="flex-1"></div> <!-- Push logout to the bottom -->
+
+            <div class="border-t border-gray-200 pt-4 mt-24">
               <button
                 (click)="onNavigate('logout')"
                 [class]="getButtonClass('logout')"
@@ -111,6 +110,8 @@ export type NavigationView = 'dashboard' | 'map' | 'logout';
               </button>
             </div>
           </div>
+
+          
         </nav>
       </div>
 
