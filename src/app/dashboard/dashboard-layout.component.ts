@@ -149,7 +149,7 @@ export class DashboardLayoutComponent implements OnInit {
   totalPages = 1;
   exportLoading = false;
   toasts: Toast[] = [];
-  pageSize = 20;
+  pageSize = 5;
   selectedBuilding: Building | null = null;
 
   private http = inject(HttpClient);

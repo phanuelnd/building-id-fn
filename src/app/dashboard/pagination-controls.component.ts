@@ -78,7 +78,7 @@ import { FormsModule } from '@angular/forms';
 export class PaginationControlsComponent implements OnChanges {
   @Input() page = 1;
   @Input() totalPages = 1;
-  @Input() pageSize = 20;
+  @Input() pageSize = 5;
   @Output() pageChange = new EventEmitter<number>();
   @Output() pageSizeChange = new EventEmitter<number>();
 
