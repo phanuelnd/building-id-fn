@@ -34,15 +34,15 @@ export type NavigationView = 'dashboard' | 'map' | 'logout';
           <!-- User Info -->
           <div
             *ngIf="currentUser"
-            class="p-4 bg-gradient-to-br from-white/20 via-gray-100/20 to-blue-600/10 backdrop-blur-sm rounded-xl border border-gray-200 border-opacity-40 shadow-sm"
+            class="p-4 bg-gradient-to-br from-blue-50/80 via-blue-100/60 to-blue-200/40 backdrop-blur-sm rounded-xl border border-blue-200 border-opacity-60 shadow-sm"
           >
             <div class="flex items-center">
-              <div class="w-12 h-12 bg-gradient-to-tr from-blue-600/70 via-gray-400/30 to-white/30 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-lg border border-gray-200 border-opacity-30">
+              <div class="w-12 h-12 bg-gradient-to-tr from-blue-500/80 via-blue-300/60 to-blue-100/40 rounded-xl flex items-center justify-center text-blue-900 text-lg font-bold shadow-lg border border-blue-200 border-opacity-40">
                 {{ currentUser.username.charAt(0).toUpperCase() }}
               </div>
               <div class="ml-4">
-                <p class="text-gray-100 font-semibold drop-shadow-sm">{{ currentUser.username }}</p>
-                <p class="text-blue-100 text-sm capitalize opacity-80">{{ currentUser.role }}</p>
+                <p class="text-blue-900 font-semibold drop-shadow-sm">{{ currentUser.username }}</p>
+                <p class="text-blue-500 text-sm capitalize opacity-80">{{ currentUser.role }}</p>
               </div>
             </div>
           </div>
