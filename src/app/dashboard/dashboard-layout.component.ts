@@ -35,8 +35,15 @@ import { environment } from '../environments/environment.development';
   ],
   template: `
     <div class="min-h-screen bg-blue-50 flex flex-col">
-      <header class="bg-white shadow-md py-4 px-6 flex items-center justify-between">
-        <h1 class="text-2xl md:text-3xl font-bold text-blue-700 tracking-tight">Building ID Dashboard</h1>
+      <header class="bg-white shadow-md py-6">
+        <div class="w-full max-w-7xl mx-auto px-4">
+          <h1 class="text-3xl md:text-4xl font-bold text-blue-700 tracking-tight mb-2">
+            Building ID Dashboard
+          </h1>
+          <p class="text-base md:text-lg text-gray-600 font-medium">
+            Welcome! Explore, search, and manage building data with ease.
+          </p>
+        </div>
       </header>
       <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
         <app-statistics-cards
