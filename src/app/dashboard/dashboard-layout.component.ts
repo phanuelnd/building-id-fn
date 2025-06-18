@@ -45,7 +45,7 @@ import { environment } from '../environments/environment.development';
       <!-- Mobile Overlay -->
       <div 
         *ngIf="sidebarVisible" 
-        class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+        class="mobile-overlay fixed inset-0 bg-black bg-opacity-60 z-40 md:hidden"
         (click)="toggleSidebar()"
       ></div>
 
@@ -163,14 +163,42 @@ import { environment } from '../environments/environment.development';
   `,
   styles: [`
     .sidebar-container {
-      transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
-      width: 256px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 320px;
       flex-shrink: 0;
+      overflow: hidden;
     }
     
     .sidebar-hidden {
       transform: translateX(-100%);
       width: 0;
+      opacity: 0;
+    }
+    
+    .sidebar-container:not(.sidebar-hidden) {
+      animation: slideInFromLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes slideInFromLeft {
+      from {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes slideOutToLeft {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
     }
     
     @media (max-width: 768px) {
@@ -180,13 +208,20 @@ import { environment } from '../environments/environment.development';
         left: 0;
         height: 100vh;
         z-index: 50;
-        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
       }
       
       .sidebar-hidden {
         transform: translateX(-100%);
-        width: 256px;
+        width: 320px;
       }
+    }
+    
+    /* Enhanced mobile overlay */
+    .mobile-overlay {
+      backdrop-filter: blur(4px);
+      transition: opacity 0.3s ease-in-out;
     }
   `]
 })

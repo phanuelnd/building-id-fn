@@ -9,83 +9,106 @@ export type NavigationView = 'dashboard' | 'map' | 'logout';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <aside class="w-64 bg-white shadow-lg h-full flex flex-col">
+    <aside class="w-80 bg-white shadow-2xl h-full flex flex-col relative border-r border-gray-100">
       <!-- Logo/Header -->
-      <div class="p-6 border-b border-gray-200">
-        <div class="flex items-center justify-between mb-4">
+      <div class="p-8 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-blue-700">
+        <div class="flex items-center justify-between mb-6">
           <div>
-            <h2 class="text-xl font-bold text-blue-700">Building Manager</h2>
-            <p class="text-sm text-gray-500 mt-1">Navigation</p>
+            <h2 class="text-2xl font-bold text-white">Mininfra</h2>
+            <p class="text-blue-100 mt-1">Building Management</p>
           </div>
-          <!-- Close/Toggle Button -->
+          <!-- Hamburger Toggle Button -->
           <button
             (click)="onToggleSidebar()"
-            class="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            [attr.aria-label]="'Close sidebar'"
+            class="p-3 rounded-xl hover:bg-white hover:bg-opacity-20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 group"
+            [attr.aria-label]="'Toggle sidebar'"
           >
-            <!-- Close Icon -->
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <!-- Hamburger Icon -->
+            <svg class="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
         </div>
         <!-- User Info -->
-        <div *ngIf="currentUser" class="p-3 bg-blue-50 rounded-lg">
+        <div
+          *ngIf="currentUser"
+          class="p-4 bg-gradient-to-br from-white/20 via-gray-100/20 to-blue-600/10 backdrop-blur-sm rounded-xl border border-gray-200 border-opacity-40 shadow-sm"
+        >
           <div class="flex items-center">
-            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+            <div class="w-12 h-12 bg-gradient-to-tr from-blue-600/70 via-gray-400/30 to-white/30 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-lg border border-gray-200 border-opacity-30">
               {{ currentUser.username.charAt(0).toUpperCase() }}
             </div>
-            <div class="ml-3">
-              <p class="text-sm font-medium text-blue-900">{{ currentUser.username }}</p>
-              <p class="text-xs text-blue-600">{{ currentUser.role }}</p>
+            <div class="ml-4">
+              <p class="text-gray-100 font-semibold drop-shadow-sm">{{ currentUser.username }}</p>
+              <p class="text-blue-100 text-sm capitalize opacity-80">{{ currentUser.role }}</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Navigation Menu -->
-      <nav class="flex-1 p-4">
-        <ul class="space-y-2">
-          <li>
-            <button
-              (click)="onNavigate('dashboard')"
-              [class]="getButtonClass('dashboard')"
-              class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors duration-200"
-            >
-              <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <nav class="flex-1 p-6">
+        <div class="space-y-3">
+          <div class="mb-6">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-3">Main Navigation</p>
+          </div>
+          
+          <button
+            (click)="onNavigate('dashboard')"
+            [class]="getButtonClass('dashboard')"
+            class="w-full flex items-center px-5 py-4 text-left rounded-xl transition-all duration-300 group hover:shadow-lg"
+          >
+            <div class="w-10 h-10 rounded-xl bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center mr-4 transition-colors duration-300">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
-              <span class="font-medium">Building Dashboard</span>
-            </button>
-          </li>
-          <li>
-            <button
-              (click)="onNavigate('map')"
-              [class]="getButtonClass('map')"
-              class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors duration-200"
-            >
-              <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            </div>
+            <div>
+              <span class="font-semibold text-gray-700 group-hover:text-gray-900">Building Dashboard</span>
+              <p class="text-sm text-gray-500 group-hover:text-gray-600">Manage building data</p>
+            </div>
+          </button>
+
+          <button
+            (click)="onNavigate('map')"
+            [class]="getButtonClass('map')"
+            class="w-full flex items-center px-5 py-4 text-left rounded-xl transition-all duration-300 group hover:shadow-lg"
+          >
+            <div class="w-10 h-10 rounded-xl bg-green-100 group-hover:bg-green-200 flex items-center justify-center mr-4 transition-colors duration-300">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
-              <span class="font-medium">View Building on Map</span>
-            </button>
-          </li>
-          <li>
+            </div>
+            <div>
+              <span class="font-semibold text-gray-700 group-hover:text-gray-900">Interactive Map</span>
+              <p class="text-sm text-gray-500 group-hover:text-gray-600">View buildings on map</p>
+            </div>
+          </button>
+        </div>
+
+        <!-- Logout Section -->
+        <div class="absolute bottom-6 left-6 right-6">
+          <div class="border-t border-gray-200 pt-6">
             <button
               (click)="onNavigate('logout')"
-              [class]="getButtonClass('logout') + ' text-red-600 hover:bg-red-50 hover:text-red-700'"
-              class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors duration-200 mt-20"
+              [class]="getButtonClass('logout')"
+              class="w-full flex items-center px-5 py-4 text-left rounded-xl transition-all duration-300 group hover:shadow-lg"
             >
-              <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              <span class="font-medium">Logout</span>
+              <div class="w-10 h-10 rounded-xl bg-red-100 group-hover:bg-red-200 flex items-center justify-center mr-4 transition-colors duration-300">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </div>
+              <div>
+                <span class="font-semibold text-gray-700 group-hover:text-red-700">Sign Out</span>
+                <p class="text-sm text-gray-500 group-hover:text-red-600">Logout securely</p>
+              </div>
             </button>
-          </li>
-        </ul>
+          </div>
+        </div>
       </nav>
     </aside>
   `,
@@ -112,15 +135,16 @@ export class SidebarNavigationComponent implements OnInit {
   }
 
   getButtonClass(view: NavigationView): string {
-    const baseClass = 'w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors duration-200';
-    const activeClass = 'bg-blue-100 text-blue-700 border border-blue-200';
-    const inactiveClass = 'text-gray-600 hover:bg-gray-50 hover:text-gray-900';
+    const activeClass = 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transform scale-105';
+    const inactiveClass = 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 hover:border-gray-300';
+    
     // Special styling for logout button
     if (view === 'logout') {
       return this.activeView === view
-        ? activeClass + ' text-red-700 border-red-200 bg-red-100'
-        : 'text-red-600 hover:bg-red-50 hover:text-red-700';
+        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg transform scale-105'
+        : inactiveClass + ' hover:bg-red-50 hover:border-red-200';
     }
+    
     return this.activeView === view ? activeClass : inactiveClass;
   }
 } 
