@@ -506,7 +506,7 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
           <div class="space-y-1 text-sm">
             <div><strong>ID:</strong> ${this.building.building_id}</div>
             <div><strong>Status:</strong> ${this.getStatusLabel(this.building.status)}</div>
-            <div><strong>Location:</strong> ${this.building.village}, ${this.building.cell}</div>
+            <div><strong>Location:</strong> ${this.building.village}, ${this.building.cell}, ${this.building.sector}</div>
             <div><strong>District:</strong> ${this.building.district}</div>
           </div>
         </div>
