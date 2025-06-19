@@ -1,12 +1,17 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login.component';
 import { DashboardLayoutComponent } from './dashboard/dashboard-layout.component';
+import { MapSearchComponent } from './public/map-search.component';
+import { PublicMapViewComponent } from './public/public-map-view.component';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/dashboard',
-    pathMatch: 'full'
+    component: MapSearchComponent
+  },
+  {
+    path: 'map/:query',
+    component: PublicMapViewComponent
   },
   {
     path: 'login',
@@ -18,6 +23,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: '/dashboard'
+    redirectTo: '/'
   }
 ];

@@ -2,7 +2,7 @@ import { Component, Output, EventEmitter, Input, inject, OnInit } from '@angular
 import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../services/auth.service';
 
-export type NavigationView = 'dashboard' | 'map' | 'logout';
+export type NavigationView = 'dashboard' | 'logout';
 
 @Component({
   selector: 'app-sidebar-navigation',
@@ -72,22 +72,7 @@ export type NavigationView = 'dashboard' | 'map' | 'logout';
               </div>
             </button>
 
-            <button
-              (click)="onNavigate('map')"
-              [class]="getButtonClass('map')"
-              class="w-full flex items-center px-5 py-4 text-left rounded-xl transition-all duration-300 group hover:shadow-lg"
-            >
-              <div class="w-10 h-10 rounded-xl bg-emerald-50 group-hover:bg-emerald-100 flex items-center justify-center mr-4 transition-colors duration-300">
-                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-              </div>
-              <div>
-                <span class="font-semibold text-gray-700 group-hover:text-gray-900">Interactive Map</span>
-                <p class="text-sm text-gray-500 group-hover:text-gray-600">View buildings on map</p>
-              </div>
-            </button>
+
 
             <div class="flex-1"></div> <!-- Push logout to the bottom -->
 
@@ -146,18 +131,7 @@ export type NavigationView = 'dashboard' | 'map' | 'logout';
               </svg>
             </button>
 
-            <!-- Map Icon -->
-            <button
-              (click)="onNavigate('map')"
-              [class]="getCollapsedButtonClass('map')"
-              class="w-14 h-14 rounded-xl transition-all duration-300 group hover:shadow-lg flex items-center justify-center"
-              [attr.aria-label]="'Interactive Map'"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-            </button>
+
           </div>
 
           <!-- Spacer to push logout icon a bit below the other icons, but not all the way to the bottom -->
@@ -231,11 +205,6 @@ export class SidebarNavigationComponent implements OnInit {
       return this.activeView === view 
         ? 'bg-blue-100 text-blue-600 border border-blue-200 shadow-md'
         : 'bg-gray-50 text-blue-500 hover:bg-blue-50 hover:text-blue-600 border border-gray-200';
-    }
-    if (view === 'map') {
-      return this.activeView === view 
-        ? 'bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-md'
-        : 'bg-gray-50 text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 border border-gray-200';
     }
     if (view === 'logout') {
       return this.activeView === view 

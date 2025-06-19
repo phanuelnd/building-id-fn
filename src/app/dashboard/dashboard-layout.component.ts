@@ -16,7 +16,6 @@ import { Building } from '../models/building.model';
 import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxjs';
 import { BuildingDetailModalComponent } from './building-detail-modal.component';
 import { SidebarNavigationComponent, NavigationView } from './sidebar-navigation.component';
-import { BuildingMapViewComponent } from './building-map-view.component';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../environments/environment.development';
 
@@ -36,7 +35,6 @@ import { environment } from '../environments/environment.development';
     ToastNotificationsComponent,
     BuildingDetailModalComponent,
     SidebarNavigationComponent,
-    BuildingMapViewComponent,
     // MapViewComponent,
   ],
   template: `
@@ -123,10 +121,7 @@ import { environment } from '../environments/environment.development';
             ></app-buildings-table>
           </div>
 
-          <!-- Map View -->
-          <div *ngSwitchCase="'map'" class="h-full">
-            <app-building-map-view></app-building-map-view>
-          </div>
+
 
 
         </main>
@@ -235,8 +230,6 @@ export class DashboardLayoutComponent implements OnInit {
     switch (this.currentView) {
       case 'dashboard':
         return 'Building ID Dashboard';
-      case 'map':
-        return 'Building Map View';
       default:
         return 'Building Management';
     }
@@ -246,8 +239,6 @@ export class DashboardLayoutComponent implements OnInit {
     switch (this.currentView) {
       case 'dashboard':
         return 'Welcome! Explore, search, and manage building data with ease.';
-      case 'map':
-        return 'Interactive map view with detailed building information.';
       default:
         return 'Building Management System';
     }
