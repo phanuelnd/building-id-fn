@@ -209,8 +209,8 @@ declare global {
               </div>
               
               <div class="bg-white bg-opacity-20 rounded-lg p-3">
-                <div class="text-xs text-blue-100 mb-1">Building ID</div>
-                <div class="font-mono text-sm break-all">{{ building.building_id }}</div>
+                <div class="text-xs text-black mb-1">Building ID</div>
+                <div class="font-mono text-black break-all">{{ building.building_id }}</div>
               </div>
             </div>
 
