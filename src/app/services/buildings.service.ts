@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Building } from '../models/building.model';
+import { Observable, catchError, of, map } from 'rxjs';
+import { Building, BuildingSearchResponse } from '../models/building.model';
 import { environment } from '../environments/environment';
 
 export interface BuildingListResponse {
@@ -39,4 +39,23 @@ export class BuildingsService {
   getBuilding(id: number): Observable<Building> {
     return this.http.get<Building>(`${this.baseUrl}/${id}`);
   }
+
+  searchBuildingById(buildingId: string): Observable<BuildingSearchResponse> {
+    return this.http.get<Building>(`${this.baseUrl}/building_id/${buildingId}`)
+      .pipe(
+        map(building => ({
+          building,
+          found: true
+        })),
+        catchError(error => {
+          console.error('Building search error:', error);
+          return of({
+            building: null,
+            found: false,
+            message: error.status === 404 ? 'Building not found' : 'Search failed'
+          });
+        })
+      );
+  }
 }
+
