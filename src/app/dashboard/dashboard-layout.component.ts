@@ -16,7 +16,6 @@ import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxj
 import { BuildingDetailModalComponent } from './building-detail-modal.component';
 import { SidebarNavigationComponent, NavigationView } from './sidebar-navigation.component';
 import { BuildingMapViewComponent } from './building-map-view.component';
-import { LogoutConfirmationComponent } from './logout-confirmation.component';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../environments/environment.development';
 
@@ -37,8 +36,7 @@ import { environment } from '../environments/environment.development';
     BuildingDetailModalComponent,
     SidebarNavigationComponent,
     BuildingMapViewComponent,
-    LogoutConfirmationComponent,
-    MapViewComponent,
+    // MapViewComponent,
   ],
   template: `
     <div class="min-h-screen bg-blue-50 flex">
@@ -130,13 +128,11 @@ import { environment } from '../environments/environment.development';
           </div>
 
           <!-- Logout View -->
-          <div *ngSwitchCase="'logout'" class="h-full">
-            <app-logout-confirmation
-              (cancel)="onLogoutCancel()"
-              (logout)="onLogoutConfirm()"
-              (lockScreen)="onLockScreen()"
-            ></app-logout-confirmation>
-          </div>
+          <!-- <div *ngSwitchCase="'logout'" class="h-full">
+            <app-logout-confirmation>
+
+            </app-logout-confirmation>
+          </div> -->
         </main>
 
         <!-- Footer (only show for dashboard and map views) -->
