@@ -15,7 +15,7 @@ import { AuthService } from '../services/auth.service';
         <div class="text-center mb-8">
           <div class="mx-auto mb-6">
             <h1 class="text-4xl font-bold text-blue-600 mb-2">Mininfra</h1>
-            <p class="text-gray-600 text-lg">Building Management System</p>
+            <p class="text-gray-600 text-lg">Login to Building ID</p>
           </div>
         </div>
 
@@ -23,7 +23,6 @@ import { AuthService } from '../services/auth.service';
         <div class="bg-white rounded-2xl shadow-xl border border-blue-100 p-8">
           <div class="mb-8">
             <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Welcome Back</h2>
-            <p class="text-gray-600 text-center">Sign in to access your dashboard</p>
           </div>
 
           <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="space-y-6">
@@ -70,7 +69,6 @@ import { AuthService } from '../services/auth.service';
                   name="password"
                   [(ngModel)]="password"
                   required
-                  minlength="6"
                   #passwordInput="ngModel"
                   class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-gray-50 focus:bg-white"
                   placeholder="Enter your password"
@@ -96,7 +94,6 @@ import { AuthService } from '../services/auth.service';
               </div>
               <div *ngIf="passwordInput.invalid && passwordInput.touched" class="mt-1 text-sm text-red-600">
                 <span *ngIf="passwordInput.errors?.['required']">Password is required</span>
-                <span *ngIf="passwordInput.errors?.['minlength']">Password must be at least 6 characters</span>
               </div>
             </div>
 
@@ -129,13 +126,6 @@ import { AuthService } from '../services/auth.service';
               </span>
             </button>
           </form>
-
-          <!-- Additional Information -->
-          <div class="mt-8 pt-6 border-t border-gray-200">
-            <p class="text-xs text-gray-500 text-center">
-              Secure login protected by industry-standard encryption
-            </p>
-          </div>
         </div>
 
         <!-- Footer -->
@@ -163,7 +153,8 @@ export class LoginComponent {
   }
 
   onLogin(): void {
-    if (this.email && this.password) {
+    // Basic validation: check for valid email format and non-empty password
+    if (this.isValidEmail(this.email) && this.password.trim().length > 0) {
       this.isLoading = true;
       
       // Simulate login process for now
@@ -173,5 +164,10 @@ export class LoginComponent {
         this.router.navigate(['/dashboard']);
       }, 1000);
     }
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 } 

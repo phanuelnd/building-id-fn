@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { StatisticsCardsComponent, BuildingStats } from './statistics-cards.component';
 import { LocationFiltersComponent } from './location-filters.component';
 import { StatusMultiSelectComponent } from './status-multi-select.component';
@@ -127,12 +128,7 @@ import { environment } from '../environments/environment.development';
             <app-building-map-view></app-building-map-view>
           </div>
 
-          <!-- Logout View -->
-          <!-- <div *ngSwitchCase="'logout'" class="h-full">
-            <app-logout-confirmation>
 
-            </app-logout-confirmation>
-          </div> -->
         </main>
 
         <!-- Footer (only show for dashboard and map views) -->
@@ -204,6 +200,7 @@ export class DashboardLayoutComponent implements OnInit {
 
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   constructor() {
     this.setupSearchDebounce();
@@ -215,6 +212,14 @@ export class DashboardLayoutComponent implements OnInit {
 
   // Navigation methods
   onViewChange(view: NavigationView) {
+    if (view === 'logout') {
+      // Immediate logout - redirect to login
+      this.authService.logout();
+      this.toasts.push({ message: 'Successfully logged out!', type: 'success' });
+      this.router.navigate(['/login']);
+      return;
+    }
+    
     this.currentView = view;
     if (view === 'dashboard') {
       // Reload dashboard data when switching back
@@ -248,27 +253,7 @@ export class DashboardLayoutComponent implements OnInit {
     }
   }
 
-  // Logout methods
-  onLogoutCancel() {
-    this.currentView = 'dashboard';
-    this.toasts.push({ message: 'Logout cancelled', type: 'info' });
-  }
 
-  onLogoutConfirm() {
-    this.authService.logout();
-    this.toasts.push({ message: 'Successfully logged out!', type: 'success' });
-    // In a real application, you would redirect to login page
-    setTimeout(() => {
-      this.currentView = 'dashboard';
-      this.toasts.push({ message: 'Demo: Would redirect to login page', type: 'info' });
-    }, 2000);
-  }
-
-  onLockScreen() {
-    this.authService.lockScreen();
-    this.currentView = 'dashboard';
-    this.toasts.push({ message: 'Screen locked (Demo feature)', type: 'info' });
-  }
 
   // Sidebar toggle method
   toggleSidebar() {
