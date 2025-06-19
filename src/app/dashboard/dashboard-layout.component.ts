@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { StatisticsCardsComponent, BuildingStats } from './statistics-cards.component';
 import { LocationFiltersComponent } from './location-filters.component';
 import { StatusMultiSelectComponent } from './status-multi-select.component';
@@ -14,6 +15,8 @@ import { MapViewComponent, MapBounds } from './map-view.component';
 import { Building } from '../models/building.model';
 import { debounceTime, distinctUntilChanged, Subject, catchError, of } from 'rxjs';
 import { BuildingDetailModalComponent } from './building-detail-modal.component';
+import { SidebarNavigationComponent, NavigationView } from './sidebar-navigation.component';
+import { AuthService } from '../services/auth.service';
 import { environment } from '../environments/environment.development';
 
 @Component({
@@ -31,74 +34,109 @@ import { environment } from '../environments/environment.development';
     ExportButtonComponent,
     ToastNotificationsComponent,
     BuildingDetailModalComponent,
+    SidebarNavigationComponent,
     // MapViewComponent,
   ],
   template: `
-    <div class="min-h-screen bg-blue-50 flex flex-col">
-      <header class="bg-white shadow-md py-4 px-6 flex items-center justify-between">
-        <h1 class="text-2xl md:text-3xl font-bold text-blue-700 tracking-tight">Rwanda Building Registry</h1>
-      </header>
-      <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
-        <app-statistics-cards
-          [stats]="stats"
-          (filterByStatus)="onStatusCardClick($event)"
-        ></app-statistics-cards>
-        <app-location-filters
-          [provinces]="provinces"
-          [districts]="districts"
-          [sectors]="sectors"
-          [province]="province"
-          [district]="district"
-          [sector]="sector"
-          (provinceChange)="onProvinceChange($event)"
-          (districtChange)="onDistrictChange($event)"
-          (sectorChange)="onSectorChange($event)"
-        ></app-location-filters>
-        <app-status-multi-select
-          [statuses]="statuses"
-          [selectedStatuses]="selectedStatuses"
-          (selectionChange)="onStatusChange($event)"
-        ></app-status-multi-select>
-        <app-search-bar
-          [value]="search"
-          (valueChange)="onSearchChange($event)"
-        ></app-search-bar>
-        <!-- <app-map-view
-          [buildings]="buildings"
-          (selectBuilding)="onSelectBuilding($event)"
-          (boundsChange)="onMapBoundsChange($event)"
-        ></app-map-view> -->
-        <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-          <app-export-button
-            [loading]="exportLoading"
-            (exportClick)="onExport()"
-          ></app-export-button>
-          <app-pagination-controls
-            [page]="page"
-            [totalPages]="totalPages"
-            [pageSize]="pageSize"
-            (pageChange)="onPageChange($event)"
-            (pageSizeChange)="onPageSizeChange($event)"
-          ></app-pagination-controls>
-        </div>
-        <app-buildings-table
-          [buildings]="buildings"
-          [columns]="columns"
-          [loading]="loading"
-          [error]="error"
-          [sortBy]="sortBy"
-          [sortDirection]="sortDirection"
-          (sort)="onSort($event)"
-          (viewDetail)="onViewDetail($event)"
-        ></app-buildings-table>
-        <app-toast-notifications
-          [toasts]="toasts"
-          (dismiss)="onDismissToast($event)"
-        ></app-toast-notifications>
-      </main>
-      <footer class="bg-white text-blue-400 text-center py-4 text-xs shadow-inner">
-        &copy; {{ currentYear }} Building Management. All rights reserved.
-      </footer>
+    <div class="min-h-screen bg-blue-50 flex">
+      <!-- Mobile Overlay -->
+      <div 
+        *ngIf="sidebarExpanded" 
+        class="mobile-overlay fixed inset-0 bg-black bg-opacity-60 z-40 md:hidden"
+        (click)="toggleSidebar()"
+      ></div>
+
+      <!-- Sidebar Navigation -->
+      <app-sidebar-navigation
+        [activeView]="currentView"
+        [sidebarExpanded]="sidebarExpanded"
+        (viewChange)="onViewChange($event)"
+        (toggleSidebar)="toggleSidebar()"
+      ></app-sidebar-navigation>
+
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="bg-gradient-to-b from-blue-50 via-white to-white shadow-md py-6" *ngIf="currentView !== 'logout'">
+          <div class="w-full max-w-7xl mx-auto px-4">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-500 tracking-tight mb-2">
+              {{ getHeaderTitle() }}
+            </h1>
+            <p class="text-base md:text-lg text-gray-500 font-medium">
+              {{ getHeaderSubtitle() }}
+            </p>
+          </div>
+        </header>
+
+        <!-- Content based on current view -->
+        <main class="flex-1" [ngSwitch]="currentView">
+          <!-- Dashboard View -->
+          <div *ngSwitchCase="'dashboard'" class="w-full max-w-7xl mx-auto px-4 py-8">
+            <app-statistics-cards
+              [stats]="stats"
+              (filterByStatus)="onStatusCardClick($event)"
+            ></app-statistics-cards>
+            <app-location-filters
+              [provinces]="provinces"
+              [districts]="districts"
+              [sectors]="sectors"
+              [province]="province"
+              [district]="district"
+              [sector]="sector"
+              (provinceChange)="onProvinceChange($event)"
+              (districtChange)="onDistrictChange($event)"
+              (sectorChange)="onSectorChange($event)"
+            ></app-location-filters>
+            <app-status-multi-select
+              [statuses]="statuses"
+              [selectedStatuses]="selectedStatuses"
+              (selectionChange)="onStatusChange($event)"
+            ></app-status-multi-select>
+            <app-search-bar
+              [value]="search"
+              (valueChange)="onSearchChange($event)"
+            ></app-search-bar>
+            <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+              <app-export-button
+                [loading]="exportLoading"
+                (exportClick)="onExport()"
+              ></app-export-button>
+              <app-pagination-controls
+                [page]="page"
+                [totalPages]="totalPages"
+                [pageSize]="pageSize"
+                (pageChange)="onPageChange($event)"
+                (pageSizeChange)="onPageSizeChange($event)"
+              ></app-pagination-controls>
+            </div>
+            <app-buildings-table
+              [buildings]="buildings"
+              [columns]="columns"
+              [loading]="loading"
+              [error]="error"
+              [sortBy]="sortBy"
+              [sortDirection]="sortDirection"
+              (sort)="onSort($event)"
+              (viewDetail)="onViewDetail($event)"
+            ></app-buildings-table>
+          </div>
+
+
+
+
+        </main>
+
+        <!-- Footer (only show for dashboard and map views) -->
+        <footer class="bg-white text-blue-400 text-center py-4 text-xs shadow-inner" *ngIf="currentView !== 'logout'">
+          &copy; {{ currentYear }} Building Management. All rights reserved.
+        </footer>
+      </div>
+
+      <!-- Toast Notifications (global) -->
+      <app-toast-notifications
+        [toasts]="toasts"
+        (dismiss)="onDismissToast($event)"
+      ></app-toast-notifications>
 
       <!-- Building Detail Modal -->
       <app-building-detail-modal
@@ -106,13 +144,23 @@ import { environment } from '../environments/environment.development';
         [building]="selectedBuilding"
         (close)="selectedBuilding = null"
       ></app-building-detail-modal>
-    </div>
   `,
+  styles: [`
+    /* Enhanced mobile overlay */
+    .mobile-overlay {
+      backdrop-filter: blur(4px);
+      transition: opacity 0.3s ease-in-out;
+    }
+  `]
 })
 export class DashboardLayoutComponent implements OnInit {
   private apiUrl = `${environment.apiBaseUrl}/buildings`;
   private searchSubject = new Subject<string>();
   public currentYear = new Date().getFullYear();
+
+  // Navigation state
+  currentView: NavigationView = 'dashboard';
+  sidebarExpanded: boolean = true;
 
   // Component state
   stats: BuildingStats = { total: 0, byStatus: {} };
@@ -142,10 +190,12 @@ export class DashboardLayoutComponent implements OnInit {
   totalPages = 1;
   exportLoading = false;
   toasts: Toast[] = [];
-  pageSize = 20;
+  pageSize = 5;
   selectedBuilding: Building | null = null;
 
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   constructor() {
     this.setupSearchDebounce();
@@ -153,6 +203,52 @@ export class DashboardLayoutComponent implements OnInit {
 
   ngOnInit() {
     this.loadInitialData();
+  }
+
+  // Navigation methods
+  onViewChange(view: NavigationView) {
+    if (view === 'logout') {
+      // Immediate logout - redirect to login
+      this.authService.logout();
+      this.toasts.push({ message: 'Successfully logged out!', type: 'success' });
+      this.router.navigate(['/login']);
+      return;
+    }
+    
+    this.currentView = view;
+    if (view === 'dashboard') {
+      // Reload dashboard data when switching back
+      this.loadInitialData();
+    }
+    // Auto-close sidebar on mobile after navigation
+    if (window.innerWidth < 768) {
+      this.sidebarExpanded = false;
+    }
+  }
+
+  getHeaderTitle(): string {
+    switch (this.currentView) {
+      case 'dashboard':
+        return 'Building ID Dashboard';
+      default:
+        return 'Building Management';
+    }
+  }
+
+  getHeaderSubtitle(): string {
+    switch (this.currentView) {
+      case 'dashboard':
+        return 'Welcome! Explore, search, and manage building data with ease.';
+      default:
+        return 'Building Management System';
+    }
+  }
+
+
+
+  // Sidebar toggle method
+  toggleSidebar() {
+    this.sidebarExpanded = !this.sidebarExpanded;
   }
 
   private setupSearchDebounce() {

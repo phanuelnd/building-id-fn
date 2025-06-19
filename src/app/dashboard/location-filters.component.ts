@@ -54,7 +54,14 @@ export class LocationFiltersComponent {
   @Input() province: string = '';
   @Input() district: string = '';
   @Input() sector: string = '';
+  
+  // TODO: Add cell and village filters
+  // @Input() cell: string = '';
+  // @Input() village: string = '';
   @Output() provinceChange = new EventEmitter<string>();
   @Output() districtChange = new EventEmitter<string>();
   @Output() sectorChange = new EventEmitter<string>();
+  // TODO: Add cell and village filters
+  // @Output() cellChange = new EventEmitter<string>();
+  // @Output() villageChange = new EventEmitter<string>();
 } 
