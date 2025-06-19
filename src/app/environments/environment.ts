@@ -2,6 +2,6 @@ import { Environment } from './environment.interface';
 
 export const environment: Environment = {
   production: true,
-  apiBaseUrl: 'https://tbuildingid.mininfra.gov.rw/api',
+  apiBaseUrl: 'http://localhost:3000/api',
   googleMapsApiKey: '',
 };

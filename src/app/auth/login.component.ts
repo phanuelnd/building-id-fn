@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -133,30 +133,75 @@ import { AuthService } from '../services/auth.service';
 })
 export class LoginComponent {
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
 
   email = '';
   password = '';
   showPassword = false;
   isLoading = false;
+  errorMessage = '';
   currentYear = new Date().getFullYear();
+
+  ngOnInit() {
+    // Clear any previous error messages
+    this.errorMessage = '';
+    
+    // If user is already logged in, redirect to dashboard
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/admin/buildings']);
+    }
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
   onLogin(): void {
-    // Basic validation: check for valid email format and non-empty password
-    if (this.isValidEmail(this.email) && this.password.trim().length > 0) {
-      this.isLoading = true;
-      
-      // Simulate login process for now
-      setTimeout(() => {
-        this.isLoading = false;
-        // For now, just redirect to dashboard - authentication will be implemented later
-        this.router.navigate(['/dashboard']);
-      }, 1000);
+    if (!this.isValidEmail(this.email) || this.password.trim().length === 0) {
+      return;
     }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const credentials = {
+      email: this.email.trim(),
+      password: this.password
+    };
+
+    this.authService.login(credentials).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        
+        // Get return URL from query params or default to dashboard
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/buildings';
+        
+        // Check if this is first login
+        if (response.user.is_first_login) {
+          // Redirect to change password page
+          this.router.navigate(['/change-password']);
+        } else {
+          // Redirect to intended page or dashboard
+          this.router.navigate([returnUrl]);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Login failed:', error);
+        
+        // Handle different error scenarios
+        if (error.status === 401) {
+          this.errorMessage = 'Invalid email or password. Please try again.';
+        } else if (error.status === 0) {
+          this.errorMessage = 'Unable to connect to the server. Please check your connection.';
+        } else if (error.error?.message) {
+          this.errorMessage = error.error.message;
+        } else {
+          this.errorMessage = 'Login failed. Please try again later.';
+        }
+      }
+    });
   }
 
   private isValidEmail(email: string): boolean {

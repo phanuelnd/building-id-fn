@@ -38,10 +38,10 @@ export type NavigationView = 'dashboard' | 'logout';
           >
             <div class="flex items-center">
               <div class="w-12 h-12 bg-gradient-to-tr from-blue-500/80 via-blue-300/60 to-blue-100/40 rounded-xl flex items-center justify-center text-blue-900 text-lg font-bold shadow-lg border border-blue-200 border-opacity-40">
-                {{ currentUser.username.charAt(0).toUpperCase() }}
+                {{ currentUser.first_name.charAt(0).toUpperCase() }}{{ currentUser.last_name.charAt(0).toUpperCase() }}
               </div>
               <div class="ml-4">
-                <p class="text-blue-900 font-semibold drop-shadow-sm">{{ currentUser.username }}</p>
+                <p class="text-blue-900 font-semibold drop-shadow-sm">{{ currentUser.first_name }} {{currentUser.first_name}}</p>
                 <p class="text-blue-500 text-sm capitalize opacity-80">{{ currentUser.role }}</p>
               </div>
             </div>
