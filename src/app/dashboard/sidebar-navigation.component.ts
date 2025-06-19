@@ -2,7 +2,7 @@ import { Component, Output, EventEmitter, Input, inject, OnInit } from '@angular
 import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../services/auth.service';
 
-export type NavigationView = 'dashboard' | 'logout';
+export type NavigationView = 'dashboard' |'users'| 'logout';
 
 @Component({
   selector: 'app-sidebar-navigation',
@@ -69,6 +69,23 @@ export type NavigationView = 'dashboard' | 'logout';
               <div>
                 <span class="font-semibold text-gray-700 group-hover:text-gray-900">Building Dashboard</span>
                 <p class="text-sm text-gray-500 group-hover:text-gray-600">Manage building data</p>
+              </div>
+            </button>
+            
+            <button
+              (click)="onNavigate('users')"
+              [class]="getButtonClass('users')"
+              class="w-full flex items-center px-5 py-4 text-left rounded-xl transition-all duration-300 group hover:shadow-lg"
+            >
+              <div class="w-10 h-10 rounded-xl bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center mr-4 transition-colors duration-300">
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 0 01-2-2v-2z" />
+                </svg>
+              </div>
+              <div>
+                <span class="font-semibold text-gray-700 group-hover:text-gray-900">Users</span>
+                <p class="text-sm text-gray-500 group-hover:text-gray-600">Manage the users</p>
               </div>
             </button>
 
