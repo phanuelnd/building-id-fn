@@ -73,6 +73,7 @@ export type NavigationView = 'dashboard' |'users'| 'logout';
             </button>
             
             <button
+              *ngIf="currentUser?.role === 'super_admin'"
               (click)="onNavigate('users')"
               [class]="getButtonClass('users')"
               class="w-full flex items-center px-5 py-4 text-left rounded-xl transition-all duration-300 group hover:shadow-lg"
@@ -80,7 +81,7 @@ export type NavigationView = 'dashboard' |'users'| 'logout';
               <div class="w-10 h-10 rounded-xl bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center mr-4 transition-colors duration-300">
                 <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 0 01-2-2v-2z" />
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
                 </svg>
               </div>
               <div>
@@ -145,6 +146,20 @@ export type NavigationView = 'dashboard' |'users'| 'logout';
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+
+            <!-- Users Icon (Super Admin Only) -->
+            <button
+              *ngIf="currentUser?.role === 'super_admin'"
+              (click)="onNavigate('users')"
+              [class]="getCollapsedButtonClass('users')"
+              class="w-14 h-14 rounded-xl transition-all duration-300 group hover:shadow-lg flex items-center justify-center"
+              [attr.aria-label]="'User Management'"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
               </svg>
             </button>
 
@@ -222,6 +237,11 @@ export class SidebarNavigationComponent implements OnInit {
       return this.activeView === view 
         ? 'bg-blue-100 text-blue-600 border border-blue-200 shadow-md'
         : 'bg-gray-50 text-blue-500 hover:bg-blue-50 hover:text-blue-600 border border-gray-200';
+    }
+    if (view === 'users') {
+      return this.activeView === view 
+        ? 'bg-purple-100 text-purple-600 border border-purple-200 shadow-md'
+        : 'bg-gray-50 text-purple-500 hover:bg-purple-50 hover:text-purple-600 border border-gray-200';
     }
     if (view === 'logout') {
       return this.activeView === view 
