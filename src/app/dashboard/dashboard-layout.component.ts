@@ -856,7 +856,7 @@ export class DashboardLayoutComponent implements OnInit {
     this.usersLoading = true;
     this.usersErrorMessage = '';
 
-    this.http.get<User[]>('http://localhost:3000/api/auth/users').subscribe({
+    this.http.get<User[]>(`${environment.apiBaseUrl}/auth/users`).subscribe({
       next: (users) => {
         this.users = users;
         this.usersLoading = false;
@@ -874,7 +874,7 @@ export class DashboardLayoutComponent implements OnInit {
     this.createErrorMessage = '';
     this.createSuccessMessage = '';
 
-    this.http.post<User>('http://localhost:3000/api/auth/users', this.newUser).subscribe({
+    this.http.post<User>(`${environment.apiBaseUrl}/auth/users`, this.newUser).subscribe({
       next: (user) => {
         this.isCreating = false;
         this.createSuccessMessage = `User ${user.first_name} ${user.last_name} created successfully!`;

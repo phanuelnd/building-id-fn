@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth.service';
+import { environment } from '../../environments/environment';
 
 interface CreateUserRequest {
   email: string;
@@ -317,52 +318,52 @@ export class UsersComponent implements OnInit {
     this.loadUsers();
   }
 
-  loadUsers() {
-    this.isLoading = true;
-    this.errorMessage = '';
+loadUsers() {
+  this.isLoading = true;
+  this.errorMessage = '';
 
-    this.http.get<User[]>('http://localhost:3000/api/auth/users').subscribe({
-      next: (users) => {
-        this.users = users;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.isLoading = false;
-        console.error('Failed to load users:', error);
-        this.errorMessage = 'Failed to load users. Please try again.';
+  this.http.get<User[]>(`${environment.apiBaseUrl}/auth/users`).subscribe({
+    next: (users) => {
+      this.users = users;
+      this.isLoading = false;
+    },
+    error: (error) => {
+      this.isLoading = false;
+      console.error('Failed to load users:', error);
+      this.errorMessage = 'Failed to load users. Please try again.';
+    }
+  });
+}
+
+createUser() {
+  this.isCreating = true;
+  this.createErrorMessage = '';
+  this.createSuccessMessage = '';
+
+  this.http.post<User>(`${environment.apiBaseUrl}/auth/users`, this.newUser).subscribe({
+    next: (user) => {
+      this.isCreating = false;
+      this.createSuccessMessage = `User ${user.first_name} ${user.last_name} created successfully!`;
+      this.users.push(user);
+      this.resetCreateForm();
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        this.createSuccessMessage = '';
+      }, 3000);
+    },
+    error: (error) => {
+      this.isCreating = false;
+      console.error('Failed to create user:', error);
+      
+      if (error.error?.message) {
+        this.createErrorMessage = error.error.message;
+      } else {
+        this.createErrorMessage = 'Failed to create user. Please try again.';
       }
-    });
-  }
-
-  createUser() {
-    this.isCreating = true;
-    this.createErrorMessage = '';
-    this.createSuccessMessage = '';
-
-    this.http.post<User>('http://localhost:3000/api/auth/users', this.newUser).subscribe({
-      next: (user) => {
-        this.isCreating = false;
-        this.createSuccessMessage = `User ${user.first_name} ${user.last_name} created successfully!`;
-        this.users.push(user);
-        this.resetCreateForm();
-        
-        // Hide success message after 3 seconds
-        setTimeout(() => {
-          this.createSuccessMessage = '';
-        }, 3000);
-      },
-      error: (error) => {
-        this.isCreating = false;
-        console.error('Failed to create user:', error);
-        
-        if (error.error?.message) {
-          this.createErrorMessage = error.error.message;
-        } else {
-          this.createErrorMessage = 'Failed to create user. Please try again.';
-        }
-      }
-    });
-  }
+    }
+  });
+}
 
   cancelCreate() {
     this.showCreateForm = false;
