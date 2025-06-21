@@ -44,83 +44,119 @@ declare global {
           </div>
         </div>
 
-        <!-- Search Bar -->
-        <div class="mt-4 flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-          <form
-            (ngSubmit)="onSearch()"
-            #searchForm="ngForm"
-            class="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch flex-1"
-            autocomplete="off"
-          >
-            <div class="flex gap-2">
-              <!-- Search Type Selector -->
-              <select
-                [(ngModel)]="searchType"
-                name="searchType"
-                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-              >
-                <option value="building_id">Building ID</option>
-                <option value="upi">UPI</option>
-              </select>
+                 <!-- Enhanced Search Bar -->
+         <div class="mt-4">
+           <form
+             (ngSubmit)="onSearch()"
+             #searchForm="ngForm"
+             class="max-w-4xl mx-auto"
+             autocomplete="off"
+           >
+             <div class="flex gap-3 items-stretch">
+               <!-- Search Type Selector -->
+               <select
+                 [(ngModel)]="searchType"
+                 (ngModelChange)="onSearchTypeChange($event)"
+                 name="searchType"
+                 class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm font-medium min-w-[120px] transition-all duration-300"
+               >
+                 <option value="building_id">Building ID</option>
+                 <option value="upi">UPI</option>
+               </select>
 
-              <!-- Search Input -->
-              <div class="flex-1 relative">
-                <input
-                  type="text"
-                  [(ngModel)]="searchQuery"
-                  (input)="onInputChange($event)"
-                  name="searchQuery"
-                  required
-                  #searchInput="ngModel"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
-                  [placeholder]="searchType === 'building_id' ? 'RW-KGL-S0190114990-E3012962286' : '1/02/01/02/1060'"
-                  [class.border-red-400]="searchInput.invalid && searchInput.touched"
-                  [class.border-green-400]="isValidFormat && searchQuery.length > 0"
-                  [disabled]="isLoading"
-                  maxlength="64"
-                  spellcheck="false"
-                  autocomplete="off"
-                >
-                <!-- Input Icons -->
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <svg *ngIf="isLoading" 
-                       class="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <svg *ngIf="isValidFormat && searchQuery.length > 0 && !isLoading" 
-                       class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
+               <!-- Enhanced Search Input -->
+               <div class="flex-1 relative">
+                 <input
+                   type="text"
+                   [(ngModel)]="searchQuery"
+                   (input)="onInputChange($event)"
+                   name="searchQuery"
+                   required
+                   #searchInput="ngModel"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-base font-mono bg-gray-50 focus:bg-white"
+                   [placeholder]="getPlaceholderText()"
+                   [class.border-red-400]="searchInput.invalid && searchInput.touched"
+                   [class.border-green-400]="isValidFormat && searchQuery.length > 0"
+                   [class.focus:ring-green-100]="isValidFormat && searchQuery.length > 0"
+                   [class.focus:border-green-500]="isValidFormat && searchQuery.length > 0"
+                   [disabled]="isLoading"
+                   maxlength="64"
+                   spellcheck="false"
+                   autocomplete="off"
+                 >
+                 <!-- Status Icons -->
+                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                   <div *ngIf="isLoading" class="flex items-center">
+                     <svg class="animate-spin w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24">
+                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                     </svg>
+                   </div>
+                   <div *ngIf="isValidFormat && searchQuery.length > 0 && !isLoading" class="flex items-center">
+                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                     </svg>
+                   </div>
+                   <div *ngIf="!isValidFormat && searchQuery.length > 0 && !isLoading" class="flex items-center">
+                     <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                     </svg>
+                   </div>
+                 </div>
+               </div>
 
-              <!-- Search Button -->
-              <button
-                type="submit"
-                [disabled]="searchForm.invalid || isLoading || !isValidFormat"
-                class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
-              >
-                <ng-container *ngIf="!isLoading; else loadingBtn">Search</ng-container>
-                <ng-template #loadingBtn>Searching...</ng-template>
-              </button>
-            </div>
-          </form>
+                              <!-- Enhanced Search Button -->
+               <button
+                 type="submit"
+                 [disabled]="searchForm.invalid || isLoading || !isValidFormat"
+                 class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap shadow-md hover:shadow-lg flex items-center gap-2"
+               >
+                 <svg *ngIf="!isLoading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                 </svg>
+                 <svg *ngIf="isLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                 </svg>
+                 <span>{{ isLoading ? 'Searching...' : 'Search' }}</span>
+               </button>
 
-          <!-- Clear Results Button -->
-          <button
-            *ngIf="searchResults.length > 0 || building"
-            (click)="clearResults()"
-            class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 text-sm"
-          >
-            Clear Results
-          </button>
-        </div>
+               <!-- Clear Results Button (inline) -->
+               <button
+                 *ngIf="searchResults.length > 0 || building"
+                 (click)="clearResults()"
+                 class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 text-sm font-medium flex items-center gap-2"
+               >
+                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                 </svg>
+                 Clear
+               </button>
+             </div>
+           </form>
+         </div>
 
-        <!-- Search Results Summary -->
-        <div *ngIf="searchResults.length > 0" class="mt-3 text-sm text-gray-600">
-          Found {{ searchResults.length }} building(s) for UPI: <strong>{{ lastSearchQuery }}</strong>
-        </div>
+                 <!-- Search Results Summary -->
+         <div *ngIf="searchResults.length > 0 && showSearchMessage" 
+              class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg transition-all duration-300">
+           <div class="flex items-center justify-between text-green-800 text-sm">
+             <div class="flex items-center">
+               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+               </svg>
+               <span>Found {{ searchResults.length }} building(s) for UPI: <strong>{{ lastSearchQuery }}</strong></span>
+             </div>
+             <button
+               (click)="hideSearchMessage()"
+               class="ml-2 text-green-600 hover:text-green-800 transition-colors duration-200"
+               title="Dismiss"
+             >
+               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+               </svg>
+             </button>
+           </div>
+         </div>
 
         <!-- Error Message -->
         <div *ngIf="errorMessage" class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -443,71 +479,134 @@ declare global {
                 </div>
               </div>
 
-              <!-- Buildings List -->
-              <div class="p-4 space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto">
-                <div 
-                  *ngFor="let building of searchResults; let i = index"
-                  class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 cursor-pointer"
-                  (click)="selectBuilding(building)"
-                >
+              <!-- Current Building Card -->
+              <div class="p-4">
+                <div *ngIf="currentBuilding" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <div class="flex items-start justify-between mb-3">
                     <div class="flex items-center space-x-2">
-                      <span class="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                        {{ i + 1 }}
+                      <span class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        {{ currentBuildingIndex + 1 }}
                       </span>
-                      <h3 class="font-semibold text-gray-800 text-sm">Building {{ i + 1 }}</h3>
+                      <div>
+                        <h3 class="font-semibold text-blue-800 text-sm">Building {{ currentBuildingIndex + 1 }}</h3>
+                        <p class="text-xs text-blue-600">{{ currentBuildingIndex + 1 }} of {{ searchResults.length }}</p>
+                      </div>
                     </div>
                     <div
                       class="px-2 py-1 rounded-full text-xs font-medium"
-                      [class.bg-green-100]="building.status === 'BUILT'"
-                      [class.text-green-800]="building.status === 'BUILT'"
-                      [class.bg-yellow-100]="building.status === 'UNDER_CONSTRUCTION'"
-                      [class.text-yellow-800]="building.status === 'UNDER_CONSTRUCTION'"
-                      [class.bg-red-100]="building.status === 'PLANNED'"
-                      [class.text-red-800]="building.status === 'PLANNED'"
+                      [class.bg-green-100]="currentBuilding.status === 'BUILT'"
+                      [class.text-green-800]="currentBuilding.status === 'BUILT'"
+                      [class.bg-yellow-100]="currentBuilding.status === 'UNDER_CONSTRUCTION'"
+                      [class.text-yellow-800]="currentBuilding.status === 'UNDER_CONSTRUCTION'"
+                      [class.bg-red-100]="currentBuilding.status === 'PLANNED'"
+                      [class.text-red-800]="currentBuilding.status === 'PLANNED'"
                     >
-                      {{ getStatusLabel(building.status) }}
+                      {{ getStatusLabel(currentBuilding.status) }}
                     </div>
                   </div>
                   
                   <div class="space-y-2 text-sm">
                     <div class="font-mono text-xs text-gray-600 bg-white p-2 rounded border">
-                      {{ building.building_id }}
+                      {{ currentBuilding.building_id }}
                     </div>
                     <div class="text-gray-700">
-                      📍 {{ building.village }}, {{ building.cell }}, {{ building.sector }}
+                      📍 {{ currentBuilding.village }}, {{ currentBuilding.cell }}, {{ currentBuilding.sector }}
                     </div>
                     <div class="text-gray-600">
-                      {{ building.district }}, {{ building.province }}
+                      {{ currentBuilding.district }}, {{ currentBuilding.province }}
                     </div>
                     <div class="text-xs text-gray-500">
-                      Lat: {{ building.latitude.toFixed(6) }}, Lng: {{ building.longitude.toFixed(6) }}
+                      Lat: {{ currentBuilding.latitude.toFixed(6) }}, Lng: {{ currentBuilding.longitude.toFixed(6) }}
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Action Buttons -->
-              <div class="border-t border-gray-200 p-4 bg-gray-50 space-y-3">
-                <button
-                  (click)="centerOnAllBuildings()"
-                  class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center font-medium"
-                >
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  </svg>
-                  View All Buildings
-                </button>
-                
-                <button
-                  (click)="downloadUPIResults()"
-                  class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center font-medium"
-                >
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Download Results
-                </button>
+                <!-- Pagination Controls -->
+                <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-1">
+                      <button
+                        (click)="goToFirstBuilding()"
+                        [disabled]="currentBuildingIndex === 0"
+                        class="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="First"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        (click)="goToPreviousBuilding()"
+                        [disabled]="currentBuildingIndex === 0"
+                        class="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Previous"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                      <span class="text-sm text-gray-600">Go to:</span>
+                      <input
+                        type="number"
+                        [(ngModel)]="navigationIndex"
+                        (keyup.enter)="goToBuildingByIndex()"
+                        [min]="1"
+                        [max]="searchResults.length"
+                        class="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                      <span class="text-sm text-gray-600">of {{ searchResults.length }}</span>
+                    </div>
+
+                    <div class="flex items-center space-x-1">
+                      <button
+                        (click)="goToNextBuilding()"
+                        [disabled]="currentBuildingIndex === searchResults.length - 1"
+                        class="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Next"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        (click)="goToLastBuilding()"
+                        [disabled]="currentBuildingIndex === searchResults.length - 1"
+                        class="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Last"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="space-y-2">
+                  <button
+                    (click)="centerOnAllBuildings()"
+                    class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                    View All Buildings
+                  </button>
+                  
+                  <button
+                    (click)="downloadUPIResults()"
+                    class="w-full bg-gray-600 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download Results
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -534,6 +633,11 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
   isValidFormat = false;
   errorMessage = '';
   errorTimeout: any = null;
+  showSearchMessage = true;
+  searchMessageTimeout: any = null;
+  currentBuilding: Building | null = null;
+  currentBuildingIndex = 0;
+  navigationIndex = 1;
   map: any;
   buildingMarkers: any[] = [];
   buildingPolygons: any[] = [];
@@ -558,6 +662,7 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     this.destroy$.next();
     this.destroy$.complete();
     this.clearError();
+    this.hideSearchMessage();
   }
 
   private loadGoogleMaps(): void {
@@ -820,6 +925,102 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     URL.revokeObjectURL(url);
   }
 
+  // Dynamic search type handling
+  onSearchTypeChange(newType: 'building_id' | 'upi'): void {
+    if (this.searchType !== newType) {
+      this.searchType = newType;
+      this.searchQuery = '';
+      this.clearError();
+      this.clearResults();
+      this.validateFormat();
+    }
+  }
+
+  getPlaceholderText(): string {
+    return this.searchType === 'building_id' 
+      ? 'Enter Building ID (e.g., RW-KGL-S0190114990-E3012962286)' 
+      : 'Enter UPI Parcel ID (e.g., 1/02/01/02/1060)';
+  }
+
+  getFormatHint(): string {
+    if (this.searchType === 'building_id') {
+      return 'Expected format: RW-[Province]-S[Latitude]-E[Longitude]';
+    } else {
+      return 'Expected format: x/yz/tz/vh/abcd (where abcd can be 2-4 digits)';
+    }
+  }
+
+  // Search message auto-hide functionality
+  hideSearchMessage(): void {
+    this.showSearchMessage = false;
+    if (this.searchMessageTimeout) {
+      clearTimeout(this.searchMessageTimeout);
+      this.searchMessageTimeout = null;
+    }
+  }
+
+  private startSearchMessageTimer(): void {
+    if (this.searchMessageTimeout) {
+      clearTimeout(this.searchMessageTimeout);
+    }
+    this.showSearchMessage = true;
+    this.searchMessageTimeout = setTimeout(() => {
+      this.showSearchMessage = false;
+    }, 5000); // Hide after 5 seconds
+  }
+
+  // Pagination methods for UPI search results
+  goToFirstBuilding(): void {
+    if (this.searchResults.length > 0) {
+      this.currentBuildingIndex = 0;
+      this.navigationIndex = 1;
+      this.updateCurrentBuilding();
+    }
+  }
+
+  goToPreviousBuilding(): void {
+    if (this.currentBuildingIndex > 0) {
+      this.currentBuildingIndex--;
+      this.navigationIndex = this.currentBuildingIndex + 1;
+      this.updateCurrentBuilding();
+    }
+  }
+
+  goToNextBuilding(): void {
+    if (this.currentBuildingIndex < this.searchResults.length - 1) {
+      this.currentBuildingIndex++;
+      this.navigationIndex = this.currentBuildingIndex + 1;
+      this.updateCurrentBuilding();
+    }
+  }
+
+  goToLastBuilding(): void {
+    if (this.searchResults.length > 0) {
+      this.currentBuildingIndex = this.searchResults.length - 1;
+      this.navigationIndex = this.searchResults.length;
+      this.updateCurrentBuilding();
+    }
+  }
+
+  goToBuildingByIndex(): void {
+    const index = this.navigationIndex - 1;
+    if (index >= 0 && index < this.searchResults.length) {
+      this.currentBuildingIndex = index;
+      this.updateCurrentBuilding();
+    } else {
+      // Reset to current if invalid
+      this.navigationIndex = this.currentBuildingIndex + 1;
+    }
+  }
+
+  private updateCurrentBuilding(): void {
+    if (this.searchResults.length > 0 && this.currentBuildingIndex >= 0 && this.currentBuildingIndex < this.searchResults.length) {
+      this.currentBuilding = this.searchResults[this.currentBuildingIndex];
+      this.building = this.currentBuilding; // Update the building details section
+      this.selectBuilding(this.currentBuilding);
+    }
+  }
+
   refreshSearch(): void {
     this.loadBuilding();
   }
@@ -941,13 +1142,16 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
           this.isLoading = false;
           if (response.found && response.buildings.length > 0) {
             this.searchResults = response.buildings;
+            this.lastSearchQuery = this.searchQuery;
             
-            // If only one building found, show its details immediately
-            if (response.buildings.length === 1) {
-              this.building = response.buildings[0];
-            } else {
-              this.building = null;
-            }
+            // Initialize current building and pagination
+            this.currentBuildingIndex = 0;
+            this.navigationIndex = 1;
+            this.currentBuilding = response.buildings[0];
+            this.building = response.buildings[0]; // Auto-display first building
+            
+            // Start auto-hide timer for search message
+            this.startSearchMessageTimer();
             
             this.clearMapMarkers();
             console.log('UPI search found buildings:', response.buildings.length);
@@ -971,6 +1175,10 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     this.searchResults = [];
     this.lastSearchQuery = '';
     this.searchQuery = '';
+    this.currentBuilding = null;
+    this.currentBuildingIndex = 0;
+    this.navigationIndex = 1;
+    this.hideSearchMessage();
     this.clearError();
     this.clearMapMarkers();
     if (this.map) {
@@ -1114,6 +1322,17 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
 
   selectBuilding(building: Building): void {
     this.building = building;
+    
+    // Update pagination if this is from UPI search results
+    if (this.searchResults.length > 1) {
+      const index = this.searchResults.findIndex(b => b.building_id === building.building_id);
+      if (index !== -1) {
+        this.currentBuildingIndex = index;
+        this.navigationIndex = index + 1;
+        this.currentBuilding = building;
+      }
+    }
+    
     // Center map on selected building
     if (this.map) {
       this.map.setCenter({
