@@ -805,11 +805,7 @@ export class DashboardLayoutComponent implements OnInit {
       .subscribe(data => {
         this.loading = false;
         if (data) {
-          this.selectedBuilding = data;
-          this.toasts.push({ 
-            message: `Viewing details for building ${data.building_id}`, 
-            type: 'info' 
-          });
+          this.selectedBuilding = data;          
         } else {
           this.showError('Building details not found.');
         }

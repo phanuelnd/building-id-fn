@@ -9,6 +9,12 @@ export interface BuildingListResponse {
   total: number;
 }
 
+export interface UPISearchResponse {
+  buildings: Building[];
+  found: boolean;
+  message?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BuildingsService {
   private readonly baseUrl = `${environment.apiBaseUrl}/buildings`;
@@ -53,6 +59,25 @@ export class BuildingsService {
             building: null,
             found: false,
             message: error.status === 404 ? 'Building not found' : 'Search failed'
+          });
+        })
+      );
+  }
+
+  searchBuildingsByUPI(parcelId: string): Observable<UPISearchResponse> {
+    const params = new HttpParams().set('parcel_id', parcelId);
+    return this.http.get<Building[]>(`${this.baseUrl}/parcel`, { params })
+      .pipe(
+        map(buildings => ({
+          buildings,
+          found: buildings.length > 0
+        })),
+        catchError(error => {
+          console.error('UPI search error:', error);
+          return of({
+            buildings: [],
+            found: false,
+            message: error.status === 404 ? 'No buildings found for this UPI' : 'Search failed'
           });
         })
       );

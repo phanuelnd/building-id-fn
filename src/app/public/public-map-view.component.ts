@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Building } from '../models/building.model';
-import { BuildingsService } from '../services/buildings.service';
+import { BuildingsService, UPISearchResponse } from '../services/buildings.service';
 import { environment } from '../environments/environment';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -18,43 +19,126 @@ declare global {
 @Component({
   selector: 'app-public-map-view',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="h-screen flex flex-col bg-gray-50 overflow-hidden">
-      <!-- Enhanced Header -->
+      <!-- Enhanced Header with Search -->
       <header class="bg-white shadow-lg border-b border-gray-200 px-6 py-4 z-10 relative">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
-            <button
-              (click)="goBack()"
-              class="flex items-center text-blue-600 hover:text-blue-700 transition-all duration-200 group"
-            >
-              <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Search
-            </button>
-            <div class="h-6 w-px bg-gray-300"></div>
             <div class="flex items-center space-x-3">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <h1 class="text-xl font-bold text-gray-800">Building Location Map</h1>
+              <img 
+                src="/rwanda_ministry_of_infrastructure_mininfra__logo.jpeg" 
+                alt="MININFRA Logo" 
+                class="h-10 w-auto"
+              >
+              <div>
+                <h1 class="text-xl font-bold text-gray-800">Building Registry</h1>
+                <p class="text-blue-600 text-sm font-medium">Ministry of Infrastructure</p>
+              </div>
             </div>
           </div>
           
           <div class="flex items-center space-x-4">
-            <div class="flex items-center space-x-2 text-sm">
-              <span class="text-gray-500">Building ID:</span>
-              <code class="bg-gray-100 px-2 py-1 rounded font-mono text-gray-700">{{ searchQuery }}</code>
+
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mt-4 flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+          <form
+            (ngSubmit)="onSearch()"
+            #searchForm="ngForm"
+            class="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch flex-1"
+            autocomplete="off"
+          >
+            <div class="flex gap-2">
+              <!-- Search Type Selector -->
+              <select
+                [(ngModel)]="searchType"
+                name="searchType"
+                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+              >
+                <option value="building_id">Building ID</option>
+                <option value="upi">UPI</option>
+              </select>
+
+              <!-- Search Input -->
+              <div class="flex-1 relative">
+                <input
+                  type="text"
+                  [(ngModel)]="searchQuery"
+                  (input)="onInputChange($event)"
+                  name="searchQuery"
+                  required
+                  #searchInput="ngModel"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
+                  [placeholder]="searchType === 'building_id' ? 'RW-KGL-S0190114990-E3012962286' : '1/02/01/02/1060'"
+                  [class.border-red-400]="searchInput.invalid && searchInput.touched"
+                  [class.border-green-400]="isValidFormat && searchQuery.length > 0"
+                  [disabled]="isLoading"
+                  maxlength="64"
+                  spellcheck="false"
+                  autocomplete="off"
+                >
+                <!-- Input Icons -->
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <svg *ngIf="isLoading" 
+                       class="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <svg *ngIf="isValidFormat && searchQuery.length > 0 && !isLoading" 
+                       class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Search Button -->
+              <button
+                type="submit"
+                [disabled]="searchForm.invalid || isLoading || !isValidFormat"
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
+              >
+                <ng-container *ngIf="!isLoading; else loadingBtn">Search</ng-container>
+                <ng-template #loadingBtn>Searching...</ng-template>
+              </button>
             </div>
-            <div class="h-6 w-px bg-gray-300"></div>
+          </form>
+
+          <!-- Clear Results Button -->
+          <button
+            *ngIf="searchResults.length > 0 || building"
+            (click)="clearResults()"
+            class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 text-sm"
+          >
+            Clear Results
+          </button>
+        </div>
+
+        <!-- Search Results Summary -->
+        <div *ngIf="searchResults.length > 0" class="mt-3 text-sm text-gray-600">
+          Found {{ searchResults.length }} building(s) for UPI: <strong>{{ lastSearchQuery }}</strong>
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div class="flex items-center justify-between text-red-800 text-sm">
+            <div class="flex items-center">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{{ errorMessage }}</span>
+            </div>
             <button
-              (click)="goToDashboard()"
-              class="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+              (click)="clearError()"
+              class="ml-2 text-red-600 hover:text-red-800 transition-colors duration-200"
+              title="Dismiss"
             >
-              Admin Dashboard
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
@@ -82,21 +166,21 @@ declare global {
           </div>
 
           <!-- Error State -->
-          <div *ngIf="!loading && !building" class="absolute inset-0 flex items-center justify-center z-20">
+          <div *ngIf="!loading && !building && searchResults.length === 0 && lastSearchQuery" class="absolute inset-0 flex items-center justify-center z-20">
             <div class="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-xl border border-gray-200">
               <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
-              <h3 class="text-2xl font-bold text-gray-800 mb-4">Building Not Found</h3>
+              <h3 class="text-2xl font-bold text-gray-800 mb-4">No Results Found</h3>
               <p class="text-gray-600 mb-6 leading-relaxed">
-                We couldn't locate a building with the identifier <strong>"{{ searchQuery }}"</strong>. 
-                Please verify the Building ID format and try again.
+                We couldn't locate any buildings with the identifier <strong>"{{ lastSearchQuery }}"</strong>. 
+                Please verify the {{ searchType === 'building_id' ? 'Building ID' : 'UPI' }} format and try again.
               </p>
               <div class="space-y-3">
                 <button
-                  (click)="goBack()"
+                  (click)="clearResults()"
                   class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
                 >
                   Try Another Search
@@ -115,7 +199,7 @@ declare global {
           <div #mapContainer id="map" class="w-full h-full"></div>
 
           <!-- Map Controls -->
-          <div *ngIf="!loading && building" class="absolute top-4 left-4 z-10 space-y-2">
+          <div *ngIf="!loading && (building || searchResults.length > 0)" class="absolute top-4 left-4 z-10 space-y-2">
             <!-- Map Type Toggle -->
             <div class="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
               <button
@@ -192,7 +276,7 @@ declare global {
         </div>
 
         <!-- Enhanced Information Panel -->
-        <div class="w-96 bg-white shadow-2xl border-l border-gray-200 overflow-y-auto z-10" [class.hidden]="!building">
+        <div class="w-96 bg-white shadow-2xl border-l border-gray-200 overflow-y-auto z-10" [class.hidden]="!building && searchResults.length === 0">
           <div *ngIf="building" class="h-full">
             <!-- Header -->
             <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
@@ -336,6 +420,96 @@ declare global {
                 Download Details
               </button>
             </div>
+
+            <!-- UPI Search Results List -->
+            <div *ngIf="searchResults.length > 1" class="h-full">
+              <!-- Header -->
+              <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6 text-white">
+                <div class="flex items-center space-x-3 mb-4">
+                  <div class="w-12 h-12 bg-white bg-opacity-80 rounded-lg flex items-center justify-center shadow-lg border border-purple-200">
+                    <svg class="w-8 h-8 text-purple-700" fill="currentColor" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="text-xl font-bold">UPI Search Results</h2>
+                    <p class="text-purple-100 text-sm">{{ searchResults.length }} Buildings Found</p>
+                  </div>
+                </div>
+                
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div class="text-xs text-black mb-1">UPI (Unique Parcel Identifier)</div>
+                  <div class="font-mono text-black break-all">{{ lastSearchQuery }}</div>
+                </div>
+              </div>
+
+              <!-- Buildings List -->
+              <div class="p-4 space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto">
+                <div 
+                  *ngFor="let building of searchResults; let i = index"
+                  class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 cursor-pointer"
+                  (click)="selectBuilding(building)"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {{ i + 1 }}
+                      </span>
+                      <h3 class="font-semibold text-gray-800 text-sm">Building {{ i + 1 }}</h3>
+                    </div>
+                    <div
+                      class="px-2 py-1 rounded-full text-xs font-medium"
+                      [class.bg-green-100]="building.status === 'BUILT'"
+                      [class.text-green-800]="building.status === 'BUILT'"
+                      [class.bg-yellow-100]="building.status === 'UNDER_CONSTRUCTION'"
+                      [class.text-yellow-800]="building.status === 'UNDER_CONSTRUCTION'"
+                      [class.bg-red-100]="building.status === 'PLANNED'"
+                      [class.text-red-800]="building.status === 'PLANNED'"
+                    >
+                      {{ getStatusLabel(building.status) }}
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-2 text-sm">
+                    <div class="font-mono text-xs text-gray-600 bg-white p-2 rounded border">
+                      {{ building.building_id }}
+                    </div>
+                    <div class="text-gray-700">
+                      📍 {{ building.village }}, {{ building.cell }}, {{ building.sector }}
+                    </div>
+                    <div class="text-gray-600">
+                      {{ building.district }}, {{ building.province }}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      Lat: {{ building.latitude.toFixed(6) }}, Lng: {{ building.longitude.toFixed(6) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="border-t border-gray-200 p-4 bg-gray-50 space-y-3">
+                <button
+                  (click)="centerOnAllBuildings()"
+                  class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center font-medium"
+                >
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  </svg>
+                  View All Buildings
+                </button>
+                
+                <button
+                  (click)="downloadUPIResults()"
+                  class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center font-medium"
+                >
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download Results
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -351,17 +525,28 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
   private destroy$ = new Subject<void>();
 
   searchQuery = '';
+  searchType: 'building_id' | 'upi' = 'building_id';
   building: Building | null = null;
-  loading = true;
+  searchResults: Building[] = [];
+  lastSearchQuery = '';
+  loading = false;
+  isLoading = false;
+  isValidFormat = false;
+  errorMessage = '';
+  errorTimeout: any = null;
   map: any;
-  buildingMarker: any;
-  buildingPolygon: any;
-  currentMapType: 'roadmap' | 'satellite' = 'roadmap';
+  buildingMarkers: any[] = [];
+  buildingPolygons: any[] = [];
+  currentMapType: 'roadmap' | 'satellite' = 'satellite';
 
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      this.searchQuery = params['query'];
-      this.loadBuilding();
+      if (params['query']) {
+        this.searchQuery = params['query'];
+        this.searchType = 'building_id';
+        this.validateFormat();
+        this.loadBuilding();
+      }
     });
   }
 
@@ -372,6 +557,7 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearError();
   }
 
   private loadGoogleMaps(): void {
@@ -392,7 +578,7 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     if (!this.mapContainer) return;
 
     const mapOptions = {
-      zoom: 17,
+      zoom: 12,
       center: { lat: -1.9441, lng: 30.0619 }, // Default to Kigali
       mapTypeId: this.currentMapType,
       streetViewControl: false,
@@ -413,6 +599,8 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     // Update map when building is loaded
     if (this.building) {
       this.displayBuildingOnMap();
+    } else if (this.searchResults.length > 0) {
+      this.displayMultipleBuildingsOnMap();
     }
   }
 
@@ -451,8 +639,11 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     this.map.setCenter(buildingCenter);
     this.map.setZoom(19);
 
+    // Clear any existing markers first
+    this.clearMapMarkers();
+
     // Add building marker
-    this.buildingMarker = new window.google.maps.Marker({
+    const buildingMarker = new window.google.maps.Marker({
       position: buildingCenter,
       map: this.map,
       title: `Building: ${this.building.building_id}`,
@@ -467,7 +658,9 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
         scaledSize: new window.google.maps.Size(32, 40),
         anchor: new window.google.maps.Point(16, 40)
       }
-    });
+          });
+
+    this.buildingMarkers.push(buildingMarker);
 
     // Add building footprint if available
     if (this.building.footprint && this.building.footprint.coordinates && this.building.footprint.coordinates[0]) {
@@ -476,7 +669,7 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
         lng: coord[0]
       }));
 
-      this.buildingPolygon = new window.google.maps.Polygon({
+      const buildingPolygon = new window.google.maps.Polygon({
         paths: polygonCoords,
         strokeColor: '#2563eb',
         strokeOpacity: 0.8,
@@ -485,6 +678,8 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
         fillOpacity: 0.2,
         map: this.map
       });
+
+      this.buildingPolygons.push(buildingPolygon);
 
       // Fit map to building bounds
       const bounds = new window.google.maps.LatLngBounds();
@@ -513,8 +708,8 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
       `
     });
 
-    this.buildingMarker.addListener('click', () => {
-      infoWindow.open(this.map, this.buildingMarker);
+    buildingMarker.addListener('click', () => {
+      infoWindow.open(this.map, buildingMarker);
     });
   }
 
@@ -629,11 +824,355 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     this.loadBuilding();
   }
 
-  goBack(): void {
-    this.router.navigate(['/']);
+
+
+
+
+  // Search functionality methods
+  onInputChange(event: any): void {
+    this.searchQuery = event.target.value;
+    if (this.searchType === 'upi') {
+      this.formatUPI();
+    }
+    this.validateFormat();
+    this.clearError();
   }
 
-  goToDashboard(): void {
-    this.router.navigate(['/login']);
+  private formatUPI(): void {
+    // Remove any existing slashes and non-digit characters
+    let cleaned = this.searchQuery.replace(/[^0-9]/g, '');
+    
+    // Apply UPI formatting: x/yz/tz/vh/abcd (where abcd can be 2-4 digits)
+    let formatted = '';
+    if (cleaned.length > 0) {
+      formatted = cleaned.charAt(0);
+      if (cleaned.length > 1) {
+        formatted += '/' + cleaned.substring(1, 3);
+      }
+      if (cleaned.length > 3) {
+        formatted += '/' + cleaned.substring(3, 5);
+      }
+      if (cleaned.length > 5) {
+        formatted += '/' + cleaned.substring(5, 7);
+      }
+      if (cleaned.length > 7) {
+        // Allow 2-4 digits for the last part
+        formatted += '/' + cleaned.substring(7, Math.min(11, cleaned.length));
+      }
+    }
+    
+    this.searchQuery = formatted;
+  }
+
+  private validateFormat(): void {
+    if (this.searchType === 'building_id') {
+      // Validate Rwanda building ID format: RW-[3 letters]-S[10 digits]-E[10 digits]
+      const rwandaBuildingIdPattern = /^RW-[A-Z]{3}-S\d{10}-E\d{10}$/;
+      this.isValidFormat = rwandaBuildingIdPattern.test(this.searchQuery.trim());
+    } else if (this.searchType === 'upi') {
+      // Validate UPI format: x/yz/tz/vh/abcd (where abcd can be 2-4 digits)
+      const upiPattern = /^\d{1}\/\d{2}\/\d{2}\/\d{2}\/\d{2,4}$/;
+      this.isValidFormat = upiPattern.test(this.searchQuery.trim());
+    }
+  }
+
+  onSearch(): void {
+    if (this.searchQuery.trim().length > 0 && this.isValidFormat) {
+      this.isLoading = true;
+      this.clearError();
+      this.lastSearchQuery = this.searchQuery.trim();
+
+      if (this.searchType === 'building_id') {
+        this.searchByBuildingId();
+      } else if (this.searchType === 'upi') {
+        this.searchByUPI();
+      }
+    }
+  }
+
+  clearError(): void {
+    if (this.errorTimeout) {
+      clearTimeout(this.errorTimeout);
+      this.errorTimeout = null;
+    }
+    this.errorMessage = '';
+  }
+
+  private showError(message: string): void {
+    this.clearError();
+    this.errorMessage = message;
+    
+    // Auto-dismiss error after 10 seconds
+    this.errorTimeout = setTimeout(() => {
+      this.clearError();
+    }, 10000);
+  }
+
+  private searchByBuildingId(): void {
+    this.buildingsService.searchBuildingById(this.searchQuery.trim())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          if (response.found && response.building) {
+            this.building = response.building;
+            this.searchResults = [];
+            this.clearMapMarkers();
+            if (this.map) {
+              this.displayBuildingOnMap();
+            }
+          } else {
+            this.showError(response.message || 'Building not found. Please verify the Building ID and try again.');
+          }
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.showError('Search failed. Please check your connection and try again.');
+          console.error('Search error:', error);
+        }
+      });
+  }
+
+  private searchByUPI(): void {
+    this.buildingsService.searchBuildingsByUPI(this.searchQuery.trim())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          if (response.found && response.buildings.length > 0) {
+            this.searchResults = response.buildings;
+            
+            // If only one building found, show its details immediately
+            if (response.buildings.length === 1) {
+              this.building = response.buildings[0];
+            } else {
+              this.building = null;
+            }
+            
+            this.clearMapMarkers();
+            console.log('UPI search found buildings:', response.buildings.length);
+            if (this.map) {
+              this.displayMultipleBuildingsOnMap();
+            }
+          } else {
+            this.showError(response.message || 'No buildings found for this UPI. Please verify the UPI and try again.');
+          }
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.showError('Search failed. Please check your connection and try again.');
+          console.error('UPI search error:', error);
+        }
+      });
+  }
+
+  clearResults(): void {
+    this.building = null;
+    this.searchResults = [];
+    this.lastSearchQuery = '';
+    this.searchQuery = '';
+    this.clearError();
+    this.clearMapMarkers();
+    if (this.map) {
+      // Reset map to Kigali satellite view
+      this.map.setCenter({ lat: -1.9441, lng: 30.0619 });
+      this.map.setZoom(12);
+      this.map.setMapTypeId('satellite');
+    }
+  }
+
+  private clearMapMarkers(): void {
+    // Clear existing markers
+    this.buildingMarkers.forEach(marker => marker.setMap(null));
+    this.buildingMarkers = [];
+    
+    // Clear existing polygons
+    this.buildingPolygons.forEach(polygon => polygon.setMap(null));
+    this.buildingPolygons = [];
+  }
+
+  private displayMultipleBuildingsOnMap(): void {
+    if (!this.map || this.searchResults.length === 0) {
+      console.log('Cannot display buildings: map or results missing');
+      return;
+    }
+
+    console.log('Displaying', this.searchResults.length, 'buildings on map');
+    const bounds = new window.google.maps.LatLngBounds();
+
+    this.searchResults.forEach((building, index) => {
+      const buildingCenter = {
+        lat: building.latitude,
+        lng: building.longitude
+      };
+
+      console.log(`Building ${index + 1}:`, buildingCenter);
+      bounds.extend(buildingCenter);
+
+      // Create a simple colored marker for each building
+      const marker = new window.google.maps.Marker({
+        position: buildingCenter,
+        map: this.map,
+        title: `Building ${index + 1}: ${building.building_id}`,
+        label: {
+          text: (index + 1).toString(),
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: '12px'
+        },
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          scale: 12,
+          fillColor: '#dc2626',
+          fillOpacity: 0.9,
+          strokeWeight: 2,
+          strokeColor: 'white'
+        }
+      });
+
+      this.buildingMarkers.push(marker);
+
+      // Add building footprint if available
+      if (building.footprint && building.footprint.coordinates && building.footprint.coordinates[0]) {
+        const polygonCoords = building.footprint.coordinates[0].map(coord => ({
+          lat: coord[1],
+          lng: coord[0]
+        }));
+
+        const polygon = new window.google.maps.Polygon({
+          paths: polygonCoords,
+          strokeColor: '#dc2626',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#dc2626',
+          fillOpacity: 0.3,
+          map: this.map
+        });
+
+        this.buildingPolygons.push(polygon);
+      }
+
+      // Add info window
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: `
+          <div class="p-4 max-w-sm">
+            <h3 class="font-bold text-gray-800 mb-3 text-lg">Building #${index + 1}</h3>
+            <div class="space-y-2 text-sm">
+              <div class="bg-gray-100 p-2 rounded">
+                <strong>Building ID:</strong><br>
+                <code class="text-xs">${building.building_id}</code>
+              </div>
+              <div><strong>Status:</strong> 
+                <span class="px-2 py-1 rounded text-xs ${building.status === 'BUILT' ? 'bg-green-100 text-green-800' : building.status === 'UNDER_CONSTRUCTION' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
+                  ${this.getStatusLabel(building.status)}
+                </span>
+              </div>
+              <div><strong>Location:</strong> ${building.village}, ${building.cell}</div>
+              <div><strong>Sector:</strong> ${building.sector}</div>
+              <div><strong>District:</strong> ${building.district}</div>
+              <div><strong>Province:</strong> ${building.province}</div>
+              ${building.parcel_id ? `<div><strong>UPI:</strong> <code>${building.parcel_id}</code></div>` : ''}
+              <div class="text-xs text-gray-500 mt-2">
+                Lat: ${building.latitude.toFixed(6)}, Lng: ${building.longitude.toFixed(6)}
+              </div>
+            </div>
+          </div>
+        `
+      });
+
+      marker.addListener('click', () => {
+        console.log('Marker clicked for building:', building.building_id);
+        
+        // Close all other info windows
+        this.buildingMarkers.forEach(m => {
+          if (m.infoWindow) {
+            m.infoWindow.close();
+          }
+        });
+        
+        // Store reference and open this one
+        marker.infoWindow = infoWindow;
+        infoWindow.open(this.map, marker);
+        
+        // Also update the sidebar with this building's info
+        this.building = building;
+      });
+    });
+
+    // Fit map to show all buildings
+    if (bounds.isEmpty() === false) {
+      this.map.fitBounds(bounds);
+      
+      // Add some padding and ensure reasonable zoom
+      const listener = window.google.maps.event.addListener(this.map, 'idle', () => {
+        if (this.map.getZoom() > 18) this.map.setZoom(18);
+        if (this.map.getZoom() < 10) this.map.setZoom(10);
+        window.google.maps.event.removeListener(listener);
+      });
+    }
+  }
+
+  selectBuilding(building: Building): void {
+    this.building = building;
+    // Center map on selected building
+    if (this.map) {
+      this.map.setCenter({
+        lat: building.latitude,
+        lng: building.longitude
+      });
+      this.map.setZoom(19);
+    }
+  }
+
+  centerOnAllBuildings(): void {
+    if (this.map && this.searchResults.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds();
+      this.searchResults.forEach(building => {
+        bounds.extend({
+          lat: building.latitude,
+          lng: building.longitude
+        });
+      });
+      this.map.fitBounds(bounds);
+    }
+  }
+
+  downloadUPIResults(): void {
+    if (this.searchResults.length === 0) return;
+
+    const upiData = {
+      upi: this.lastSearchQuery,
+      total_buildings: this.searchResults.length,
+      search_date: new Date().toISOString(),
+      buildings: this.searchResults.map(building => ({
+        building_id: building.building_id,
+        status: building.status,
+        location: {
+          province: building.province,
+          district: building.district,
+          sector: building.sector,
+          cell: building.cell,
+          village: building.village
+        },
+        coordinates: {
+          latitude: building.latitude,
+          longitude: building.longitude
+        },
+        parcel_id: building.parcel_id,
+        data_source: building.data_source
+      }))
+    };
+
+    const dataStr = JSON.stringify(upiData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `upi-search-${this.lastSearchQuery.replace(/\//g, '-')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 } 
