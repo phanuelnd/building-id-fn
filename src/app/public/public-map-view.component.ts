@@ -202,7 +202,7 @@ declare global {
           </div>
 
           <!-- Error State -->
-          <div *ngIf="!loading && !building && searchResults.length === 0 && lastSearchQuery" class="absolute inset-0 flex items-center justify-center z-20">
+          <div *ngIf="!loading && !building && searchResults.length === 0 && lastSearchQuery && searchCompleted" class="absolute inset-0 flex items-center justify-center z-20">
             <div class="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-xl border border-gray-200">
               <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -633,6 +633,7 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
   isValidFormat = false;
   errorMessage = '';
   errorTimeout: any = null;
+  searchCompleted = false;
   showSearchMessage = true;
   searchMessageTimeout: any = null;
   currentBuilding: Building | null = null;
@@ -1079,8 +1080,16 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
 
   onSearch(): void {
     if (this.searchQuery.trim().length > 0 && this.isValidFormat) {
+      // Set both loading states and clear previous results to prevent error state flash
       this.isLoading = true;
+      this.loading = true;
+      this.searchCompleted = false;
       this.clearError();
+      
+      // Clear previous results immediately to prevent error state from showing
+      this.building = null;
+      this.searchResults = [];
+      
       this.lastSearchQuery = this.searchQuery.trim();
 
       if (this.searchType === 'building_id') {
@@ -1115,6 +1124,8 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
       .subscribe({
         next: (response) => {
           this.isLoading = false;
+          this.loading = false;
+          this.searchCompleted = true;
           if (response.found && response.building) {
             this.building = response.building;
             this.searchResults = [];
@@ -1128,6 +1139,8 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
         },
         error: (error) => {
           this.isLoading = false;
+          this.loading = false;
+          this.searchCompleted = true;
           this.showError('Search failed. Please check your connection and try again.');
           console.error('Search error:', error);
         }
@@ -1140,6 +1153,8 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
       .subscribe({
         next: (response) => {
           this.isLoading = false;
+          this.loading = false;
+          this.searchCompleted = true;
           if (response.found && response.buildings.length > 0) {
             this.searchResults = response.buildings;
             this.lastSearchQuery = this.searchQuery;
@@ -1164,6 +1179,8 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
         },
         error: (error) => {
           this.isLoading = false;
+          this.loading = false;
+          this.searchCompleted = true;
           this.showError('Search failed. Please check your connection and try again.');
           console.error('UPI search error:', error);
         }
@@ -1178,6 +1195,7 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     this.currentBuilding = null;
     this.currentBuildingIndex = 0;
     this.navigationIndex = 1;
+    this.searchCompleted = false;
     this.hideSearchMessage();
     this.clearError();
     this.clearMapMarkers();
