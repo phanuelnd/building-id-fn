@@ -437,13 +437,23 @@ declare global {
             <!-- Actions -->
             <div class="border-t border-gray-200 p-6 bg-gray-50 space-y-3">
               <button
+                (click)="openInGoogleMaps()"
+                class="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center font-medium"
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                Open in Google Maps
+              </button>
+              
+              <button
                 (click)="shareLocation()"
                 class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-medium"
               >
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                 </svg>
-                Share Location
+                Share Location & Directions
               </button>
               
               <button
@@ -587,6 +597,26 @@ declare global {
 
                 <!-- Quick Actions -->
                 <div class="space-y-2">
+                  <button
+                    (click)="openInGoogleMaps()"
+                    class="w-full bg-red-600 text-white py-2 px-3 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    Open in Google Maps
+                  </button>
+                  
+                  <button
+                    (click)="shareLocation()"
+                    class="w-full bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                    </svg>
+                    Share Location & Directions
+                  </button>
+
                   <button
                     (click)="centerOnAllBuildings()"
                     class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm"
@@ -867,18 +897,93 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   shareLocation(): void {
-    if (navigator.share && this.building) {
+    if (!this.building) return;
+
+    const googleMapsUrl = this.generateGoogleMapsUrl();
+    const locationText = `${this.building.village}, ${this.building.cell}, ${this.building.sector}, ${this.building.district}, ${this.building.province}`;
+    
+    if (navigator.share) {
       navigator.share({
         title: `Building ${this.building.building_id}`,
-        text: `View building location in ${this.building.village}, ${this.building.district}`,
-        url: window.location.href
+        text: `Building Location: ${locationText}\n\nCoordinates: ${this.building.latitude.toFixed(6)}, ${this.building.longitude.toFixed(6)}\n\nOpen in Google Maps: ${googleMapsUrl}\n\nView Details: ${window.location.href}`,
+        url: googleMapsUrl
+      }).catch(() => {
+        // Fallback if share fails
+        this.copyLocationToClipboard(googleMapsUrl, locationText);
       });
     } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href).then(() => {
-        alert('Location link copied to clipboard!');
-      });
+      // Fallback: copy comprehensive location info to clipboard
+      this.copyLocationToClipboard(googleMapsUrl, locationText);
     }
+  }
+
+  private copyLocationToClipboard(googleMapsUrl: string, locationText: string): void {
+    const shareText = `Building ${this.building?.building_id}
+
+Location: ${locationText}
+Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.toFixed(6)}
+
+🗺️ Open in Google Maps: ${googleMapsUrl}
+📋 View Details: ${window.location.href}`;
+
+    navigator.clipboard.writeText(shareText).then(() => {
+      this.showTemporaryMessage('Location details copied to clipboard!');
+    }).catch(() => {
+      // Final fallback - show the info in an alert
+      alert(`Location: ${locationText}\n\nGoogle Maps: ${googleMapsUrl}`);
+    });
+  }
+
+  openInGoogleMaps(): void {
+    if (!this.building) return;
+    
+    const googleMapsUrl = this.generateGoogleMapsUrl();
+    window.open(googleMapsUrl, '_blank');
+  }
+
+  private generateGoogleMapsUrl(): string {
+    if (!this.building) return '';
+    
+    const lat = this.building.latitude;
+    const lng = this.building.longitude;
+    const locationName = `${this.building.village}, ${this.building.district}`;
+    
+    // Create a Google Maps URL that opens directions to the location
+    return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=&travelmode=driving`;
+  }
+
+  private generateGoogleMapsViewUrl(): string {
+    if (!this.building) return '';
+    
+    const lat = this.building.latitude;
+    const lng = this.building.longitude;
+    const locationName = encodeURIComponent(`${this.building.village}, ${this.building.district}`);
+    
+    // Create a Google Maps URL that shows the location
+    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=`;
+  }
+
+  private showTemporaryMessage(message: string): void {
+    // Create a temporary toast-like message
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    // Animate in
+    setTimeout(() => {
+      toast.style.transform = 'translateX(0)';
+    }, 100);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+      toast.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
   }
 
   copyCoordinates(): void {
