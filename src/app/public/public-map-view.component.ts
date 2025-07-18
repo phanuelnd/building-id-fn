@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Building } from '../models/building.model';
-import { BuildingsService, UPISearchResponse } from '../services/buildings.service';
+import { BuildingsService, UPISearchResponse, CoordinateSearchResponse } from '../services/buildings.service';
 import { environment } from '../environments/environment';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -232,7 +232,30 @@ declare global {
           </div>
 
           <!-- Google Maps -->
-          <div #mapContainer id="map" class="w-full h-full"></div>
+          <div #mapContainer id="map" class="w-full h-full cursor-crosshair"></div>
+
+          <!-- Click instruction overlay -->
+          <div *ngIf="!loading && !building && searchResults.length === 0" class="absolute bottom-4 left-4 right-4 z-10">
+            <div class="bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-3 text-center">
+              <div class="flex items-center justify-center space-x-2 text-sm text-gray-700">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.122 2.122" />
+                </svg>
+                <span><strong>Tip:</strong> Click anywhere on the map to search for buildings at that location</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search in progress indicator -->
+          <div *ngIf="isSearchingCoordinates" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+            <div class="bg-white rounded-lg shadow-lg p-4 flex items-center space-x-3">
+              <svg class="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span class="text-sm font-medium text-gray-700">Searching for building...</span>
+            </div>
+          </div>
 
           <!-- Map Controls -->
           <div *ngIf="!loading && (building || searchResults.length > 0)" class="absolute top-4 left-4 z-10 space-y-2">
@@ -673,6 +696,9 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
   buildingMarkers: any[] = [];
   buildingPolygons: any[] = [];
   currentMapType: 'roadmap' | 'satellite' = 'satellite';
+  clickedBuilding: Building | null = null;
+  clickedBuildingInfoWindow: any = null;
+  isSearchingCoordinates = false;
 
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -694,6 +720,12 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     this.destroy$.complete();
     this.clearError();
     this.hideSearchMessage();
+    
+    // Clean up clicked building info window
+    if (this.clickedBuildingInfoWindow) {
+      this.clickedBuildingInfoWindow.close();
+      this.clickedBuildingInfoWindow = null;
+    }
   }
 
   private loadGoogleMaps(): void {
@@ -731,6 +763,11 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     };
 
     this.map = new window.google.maps.Map(this.mapContainer.nativeElement, mapOptions);
+
+    // Add click listener for coordinate-based building search
+    this.map.addListener('click', (event: any) => {
+      this.onMapClick(event);
+    });
 
     // Update map when building is loaded
     if (this.building) {
@@ -1304,6 +1341,14 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
     this.hideSearchMessage();
     this.clearError();
     this.clearMapMarkers();
+    
+    // Clean up clicked building info
+    this.clickedBuilding = null;
+    if (this.clickedBuildingInfoWindow) {
+      this.clickedBuildingInfoWindow.close();
+      this.clickedBuildingInfoWindow = null;
+    }
+    
     if (this.map) {
       // Reset map to Kigali satellite view
       this.map.setCenter({ lat: -1.9441, lng: 30.0619 });
@@ -1516,5 +1561,177 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  }
+
+  onMapClick(event: any): void {
+    // Don't interfere with existing building info windows
+    if (this.isLoading || this.isSearchingCoordinates) return;
+
+    const clickedLat = event.latLng.lat();
+    const clickedLng = event.latLng.lng();
+
+    // Close any existing clicked building info window
+    if (this.clickedBuildingInfoWindow) {
+      this.clickedBuildingInfoWindow.close();
+      this.clickedBuildingInfoWindow = null;
+    }
+
+    // Show loading indicator
+    this.isSearchingCoordinates = true;
+
+    // Search for building at clicked coordinates
+    this.buildingsService.searchBuildingByCoordinates(clickedLat, clickedLng)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: CoordinateSearchResponse) => {
+          this.isSearchingCoordinates = false;
+          
+          if (response.found && response.building) {
+            this.showClickedBuildingInfo(response.building, clickedLat, clickedLng);
+          } else {
+            this.showNoBuildingFoundMessage(clickedLat, clickedLng);
+          }
+        },
+        error: (error) => {
+          this.isSearchingCoordinates = false;
+          console.error('Coordinate search failed:', error);
+          this.showSearchErrorMessage(clickedLat, clickedLng);
+        }
+      });
+  }
+
+  private showClickedBuildingInfo(building: Building, lat: number, lng: number): void {
+    this.clickedBuilding = building;
+
+    const infoWindowContent = `
+      <div class="p-4 max-w-sm">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-3 h-3 rounded-full ${this.getStatusColor(building.status)}"></div>
+          <h3 class="font-bold text-gray-800 text-sm">Clicked Building</h3>
+        </div>
+        
+        <div class="space-y-2 text-sm">
+          <div class="bg-gray-100 p-2 rounded">
+            <strong>Building ID:</strong><br>
+            <code class="text-xs">${building.building_id}</code>
+          </div>
+          
+          <div><strong>Status:</strong> 
+            <span class="px-2 py-1 rounded text-xs ${this.getStatusBadgeClass(building.status)}">
+              ${this.getStatusLabel(building.status)}
+            </span>
+          </div>
+          
+          <div><strong>Location:</strong> ${building.village}, ${building.cell}</div>
+          <div><strong>Sector:</strong> ${building.sector}</div>
+          <div><strong>District:</strong> ${building.district}, ${building.province}</div>
+          
+          ${building.parcel_id ? `<div><strong>UPI:</strong> <code class="text-xs">${building.parcel_id}</code></div>` : ''}
+          
+          <div class="text-xs text-gray-500 mt-2">
+            Lat: ${building.latitude.toFixed(6)}, Lng: ${building.longitude.toFixed(6)}
+          </div>
+          
+          <div class="mt-3 pt-2 border-t border-gray-200">
+            <button onclick="window.parent.postMessage({type: 'viewBuildingDetails', buildingId: '${building.building_id}'}, '*')" 
+                    class="w-full bg-blue-600 text-white py-1 px-2 rounded text-xs hover:bg-blue-700 transition-colors">
+              View Full Details
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.clickedBuildingInfoWindow = new window.google.maps.InfoWindow({
+      content: infoWindowContent,
+      position: { lat, lng }
+    });
+
+    this.clickedBuildingInfoWindow.open(this.map);
+
+    // Listen for the view details message
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'viewBuildingDetails') {
+        this.building = building;
+        this.clickedBuildingInfoWindow?.close();
+      }
+    });
+  }
+
+  private showNoBuildingFoundMessage(lat: number, lng: number): void {
+    const infoWindowContent = `
+      <div class="p-3 text-center">
+        <div class="text-gray-500 text-sm">
+          <svg class="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          <p><strong>No Building Found</strong></p>
+          <p class="text-xs">No registered building at this location</p>
+          <p class="text-xs text-gray-400 mt-1">${lat.toFixed(6)}, ${lng.toFixed(6)}</p>
+        </div>
+      </div>
+    `;
+
+    this.clickedBuildingInfoWindow = new window.google.maps.InfoWindow({
+      content: infoWindowContent,
+      position: { lat, lng }
+    });
+
+    this.clickedBuildingInfoWindow.open(this.map);
+
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+      if (this.clickedBuildingInfoWindow) {
+        this.clickedBuildingInfoWindow.close();
+        this.clickedBuildingInfoWindow = null;
+      }
+    }, 3000);
+  }
+
+  private showSearchErrorMessage(lat: number, lng: number): void {
+    const infoWindowContent = `
+      <div class="p-3 text-center">
+        <div class="text-red-500 text-sm">
+          <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p><strong>Search Error</strong></p>
+          <p class="text-xs">Failed to search for building at this location</p>
+        </div>
+      </div>
+    `;
+
+    this.clickedBuildingInfoWindow = new window.google.maps.InfoWindow({
+      content: infoWindowContent,
+      position: { lat, lng }
+    });
+
+    this.clickedBuildingInfoWindow.open(this.map);
+
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+      if (this.clickedBuildingInfoWindow) {
+        this.clickedBuildingInfoWindow.close();
+        this.clickedBuildingInfoWindow = null;
+      }
+    }, 3000);
+  }
+
+  private getStatusColor(status: string): string {
+    switch (status) {
+      case 'BUILT': return 'bg-green-500';
+      case 'UNDER_CONSTRUCTION': return 'bg-yellow-500';
+      case 'PLANNED': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  }
+
+  private getStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'BUILT': return 'bg-green-100 text-green-800';
+      case 'UNDER_CONSTRUCTION': return 'bg-yellow-100 text-yellow-800';
+      case 'PLANNED': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   }
 } 

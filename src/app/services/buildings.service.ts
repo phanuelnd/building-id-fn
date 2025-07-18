@@ -15,6 +15,12 @@ export interface UPISearchResponse {
   message?: string;
 }
 
+export interface CoordinateSearchResponse {
+  building: Building | null;
+  found: boolean;
+  message?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BuildingsService {
   private readonly baseUrl = `${environment.apiBaseUrl}/buildings`;
@@ -78,6 +84,29 @@ export class BuildingsService {
             buildings: [],
             found: false,
             message: error.status === 404 ? 'No buildings found for this UPI' : 'Search failed'
+          });
+        })
+      );
+  }
+
+  searchBuildingByCoordinates(latitude: number, longitude: number, tolerance: number = 0.0001): Observable<CoordinateSearchResponse> {
+    const params = new HttpParams()
+      .set('latitude', latitude.toString())
+      .set('longitude', longitude.toString())
+      .set('tolerance', tolerance.toString());
+    
+    return this.http.get<Building>(`${this.baseUrl}/coordinates`, { params })
+      .pipe(
+        map(building => ({
+          building,
+          found: true
+        })),
+        catchError(error => {
+          console.error('Coordinate search error:', error);
+          return of({
+            building: null,
+            found: false,
+            message: error.status === 404 ? 'No building found at this location' : 'Search failed'
           });
         })
       );
