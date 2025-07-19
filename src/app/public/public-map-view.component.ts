@@ -15,6 +15,7 @@ declare global {
     initMap: () => void;
     openInGoogleMaps: () => void;
     shareLocation: () => void;
+    copyBuildingIDToClipboard: (buildingId: string) => void;
   }
 }
 
@@ -111,7 +112,7 @@ declare global {
                <button
                  type="submit"
                  [disabled]="searchForm.invalid || isLoading || !isValidFormat"
-                 class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap shadow-md hover:shadow-lg flex items-center gap-2"
+                 class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap shadow-md hover:shadow-lg cursor-pointer flex items-center gap-2"
                >
                  <svg *ngIf="!isLoading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -127,7 +128,7 @@ declare global {
                <button
                  *ngIf="searchResults.length > 0 || building"
                  (click)="clearResults()"
-                 class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 text-sm font-medium flex items-center gap-2"
+                 class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 cursor-pointer transition-colors duration-200 text-sm font-medium flex items-center gap-2"
                >
                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -268,7 +269,7 @@ declare global {
                 [class.bg-blue-600]="currentMapType === 'roadmap'"
                 [class.text-white]="currentMapType === 'roadmap'"
                 [class.text-gray-700]="currentMapType !== 'roadmap'"
-                class="px-4 py-2 text-sm font-medium transition-colors duration-200 hover:bg-blue-50 border-r border-gray-200"
+                class="px-4 py-2 text-sm font-medium transition-colors duration-200 hover:bg-blue-50 cursor-pointer"
               >
                 Map
               </button>
@@ -277,7 +278,7 @@ declare global {
                 [class.bg-blue-600]="currentMapType === 'satellite'"
                 [class.text-white]="currentMapType === 'satellite'"
                 [class.text-gray-700]="currentMapType !== 'satellite'"
-                class="px-4 py-2 text-sm font-medium transition-colors duration-200 hover:bg-blue-50"
+                class="px-4 py-2 text-sm font-medium transition-colors duration-200 hover:bg-blue-50 cursor-pointer"
               >
                 Satellite
               </button>
@@ -287,7 +288,7 @@ declare global {
             <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-1">
               <button
                 (click)="zoomIn()"
-                class="block w-full p-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200 rounded"
+                class="block w-full p-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200 rounded cursor-pointer"
                 title="Zoom In"
               >
                 <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -297,7 +298,7 @@ declare global {
               <div class="border-t border-gray-200 my-1"></div>
               <button
                 (click)="zoomOut()"
-                class="block w-full p-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200 rounded"
+                class="block w-full p-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200 rounded cursor-pointer"
                 title="Zoom Out"
               >
                 <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,7 +310,7 @@ declare global {
             <!-- Center on Building -->
             <button
               (click)="centerOnBuilding()"
-              class="bg-white rounded-lg shadow-lg border border-gray-200 p-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+              class="bg-white rounded-lg shadow-lg border border-gray-200 p-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
               title="Center on Building"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -426,7 +427,7 @@ declare global {
                   </div>
                   <button
                     (click)="copyCoordinates()"
-                    class="w-full mt-2 text-xs bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200"
+                    class="w-full mt-2 text-xs bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 cursor-pointer"
                   >
                     Copy Coordinates
                   </button>
@@ -463,7 +464,7 @@ declare global {
             <div class="border-t border-gray-200 p-6 bg-gray-50 space-y-3">
               <button
                 (click)="openInGoogleMaps()"
-                class="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center font-medium"
+                class="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center font-medium cursor-pointer"
               >
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
@@ -473,7 +474,7 @@ declare global {
               
               <button
                 (click)="shareLocation()"
-                class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-medium"
+                class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-medium cursor-pointer"
               >
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
@@ -483,7 +484,7 @@ declare global {
               
               <button
                 (click)="downloadDetails()"
-                class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center font-medium"
+                class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center font-medium cursor-pointer"
               >
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -563,7 +564,7 @@ declare global {
                       <button
                         (click)="goToFirstBuilding()"
                         [disabled]="currentBuildingIndex === 0"
-                        class="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        class="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                         title="First"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -573,7 +574,7 @@ declare global {
                       <button
                         (click)="goToPreviousBuilding()"
                         [disabled]="currentBuildingIndex === 0"
-                        class="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        class="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                         title="Previous"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -624,7 +625,7 @@ declare global {
                 <div class="space-y-2">
                   <button
                     (click)="openInGoogleMaps()"
-                    class="w-full bg-red-600 text-white py-2 px-3 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm"
+                    class="w-full bg-red-600 text-white py-2 px-3 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm cursor-pointer"
                   >
                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
@@ -634,7 +635,7 @@ declare global {
                   
                   <button
                     (click)="shareLocation()"
-                    class="w-full bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm"
+                    class="w-full bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm cursor-pointer"
                   >
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
@@ -644,7 +645,7 @@ declare global {
 
                   <button
                     (click)="centerOnAllBuildings()"
-                    class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm"
+                    class="w-full bg-purple-600 text-white py-2 px-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm cursor-pointer"
                   >
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -654,7 +655,7 @@ declare global {
                   
                   <button
                     (click)="downloadUPIResults()"
-                    class="w-full bg-gray-600 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm"
+                    class="w-full bg-gray-600 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center font-medium text-sm cursor-pointer"
                   >
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -717,6 +718,10 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
     };
     window.shareLocation = () => {
       this.shareLocation();
+    };
+
+    window.copyBuildingIDToClipboard = (buildingId: string) => {
+      this.copyBuildingIDToClipboard(buildingId);
     };
 
   }
@@ -882,9 +887,18 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
         <div class="p-3 max-w-xs">
           <h3 class="font-bold text-gray-800 mb-2">Building Information</h3>
           <div class="space-y-1 text-sm">
-            <div class="bg-gray-100 p-2 rounded">
-                <strong>ID -- Search simple:</strong><br>
+              <div class="bg-gray-100 p-2 rounded relative">
+                <strong>ID</strong><br>
                 <code class="text-xs">${this.building.building_id}</code>
+                <button
+                  onclick="copyBuildingIDToClipboard('${this.building.building_id}')"
+                  class ="absolute top-2 right-2 text-blue-600 hover:underline text-xs cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+                  </svg>
+
+                </button>
               </div>
               <div><strong>Status:</strong> 
                 <span class="px-2 py-1 rounded text-xs ${this.building.status === 'BUILT' ? 'bg-green-100 text-green-800' : this.building.status === 'UNDER_CONSTRUCTION' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
@@ -965,6 +979,14 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
       year: 'numeric',
       month: 'short',
       day: 'numeric'
+    });
+  }
+  copyBuildingIDToClipboard(buildingId: string): void {
+    navigator.clipboard.writeText(buildingId).then(() => {
+      this.showTemporaryMessage('Building ID copied to clipboard!');
+    }
+    ).catch(() => {
+      alert('Failed to copy Building ID. Please try again.');
     });
   }
 
@@ -1470,10 +1492,19 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
         content: `
           <div class="p-4 max-w-sm">
             <h3 class="font-bold text-gray-800 mb-2">Building #${index + 1}</h3>
-            <div class="space-y-2 text-sm">
+            <div class="space-y-2 text-sm relative">
               <div class="bg-gray-100 p-2 rounded">
-                <strong>Building ID:</strong><br>
+                <strong>Building ID</strong><br>
                 <code class="text-xs">${building.building_id}</code>
+                <button
+                  onclick="copyBuildingIDToClipboard('${building.building_id}')"
+                  class ="absolute top-2 right-2 text-blue-600 hover:underline text-xs cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+                  </svg>
+
+                </button>
               </div>
               <div><strong>Status:</strong> 
                 <span class="px-2 py-1 rounded text-xs ${building.status === 'BUILT' ? 'bg-green-100 text-green-800' : building.status === 'UNDER_CONSTRUCTION' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
@@ -1483,6 +1514,25 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
               <div><strong>Location:</strong> ${building.village}, ${building.cell}, ${building.sector}, ${building.district}, ${building.province}</div>
         
               ${building.parcel_id ? `<div><strong>UPI:</strong> <code>${building.parcel_id}</code></div>` : ''}
+              <button
+                onclick="openInGoogleMaps()"
+                class="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center font-medium cursor-pointer"
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                Open in Google Maps
+            </button>
+            <button
+                onclick="shareLocation()"
+                class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-medium cursor-pointer"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                </svg>
+                Share Location & Directions
+            </button>
+  
             </div>
           </div>
         `
