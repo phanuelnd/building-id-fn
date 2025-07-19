@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, of, map } from 'rxjs';
 import { Building, BuildingSearchResponse } from '../models/building.model';
-import { environment } from '../environments/environment';
+import { environment } from '../environments/environment.development';
 
 export interface BuildingListResponse {
   data: Building[];

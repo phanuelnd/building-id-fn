@@ -13,6 +13,8 @@ declare global {
   interface Window {
     google: any;
     initMap: () => void;
+    openInGoogleMaps: () => void;
+    shareLocation: () => void;
   }
 }
 
@@ -709,6 +711,14 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
         this.loadBuilding();
       }
     });
+
+    window.openInGoogleMaps = () => {
+      this.openInGoogleMaps();
+    };
+    window.shareLocation = () => {
+      this.shareLocation();
+    };
+
   }
 
   ngAfterViewInit(): void {
@@ -872,10 +882,35 @@ export class PublicMapViewComponent implements OnInit, OnDestroy, AfterViewInit 
         <div class="p-3 max-w-xs">
           <h3 class="font-bold text-gray-800 mb-2">Building Information</h3>
           <div class="space-y-1 text-sm">
-            <div><strong>ID:</strong> ${this.building.building_id}</div>
-            <div><strong>Status:</strong> ${this.getStatusLabel(this.building.status)}</div>
-            <div><strong>Location:</strong> ${this.building.village}, ${this.building.cell}, ${this.building.sector}</div>
-            <div><strong>District:</strong> ${this.building.district}</div>
+            <div class="bg-gray-100 p-2 rounded">
+                <strong>ID -- Search simple:</strong><br>
+                <code class="text-xs">${this.building.building_id}</code>
+              </div>
+              <div><strong>Status:</strong> 
+                <span class="px-2 py-1 rounded text-xs ${this.building.status === 'BUILT' ? 'bg-green-100 text-green-800' : this.building.status === 'UNDER_CONSTRUCTION' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
+                  ${this.getStatusLabel(this.building.status)}
+                </span>
+              </div>
+            <div><strong>Location:</strong> ${this.building.village}, ${this.building.cell}, ${this.building.sector}, ${this.building.district}, ${this.building.province}</div>
+            <button
+                onclick="openInGoogleMaps()"
+                class="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center font-medium"
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                Open in Google Maps
+            </button>
+            <button
+                onclick="shareLocation()"
+                class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-medium"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                </svg>
+                Share Location & Directions
+            </button>
+  
           </div>
         </div>
       `
@@ -975,6 +1010,7 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
     if (!this.building) return;
     
     const googleMapsUrl = this.generateGoogleMapsUrl();
+    console.log('Opening Google Maps URL:', googleMapsUrl);
     window.open(googleMapsUrl, '_blank');
   }
 
@@ -1070,13 +1106,14 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
 
   // Dynamic search type handling
   onSearchTypeChange(newType: 'building_id' | 'upi'): void {
-    if (this.searchType !== newType) {
-      this.searchType = newType;
-      this.searchQuery = '';
+  
+      // this.searchType = newType;
+      // this.searchQuery = '';
       this.clearError();
-      this.clearResults();
+      // this.clearResults();
       this.validateFormat();
-    }
+      console.log(`Search type changed to: ${newType}`);
+
   }
 
   getPlaceholderText(): string {
@@ -1432,7 +1469,7 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
       const infoWindow = new window.google.maps.InfoWindow({
         content: `
           <div class="p-4 max-w-sm">
-            <h3 class="font-bold text-gray-800 mb-3 text-lg">Building #${index + 1}</h3>
+            <h3 class="font-bold text-gray-800 mb-2">Building #${index + 1}</h3>
             <div class="space-y-2 text-sm">
               <div class="bg-gray-100 p-2 rounded">
                 <strong>Building ID:</strong><br>
@@ -1443,14 +1480,9 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
                   ${this.getStatusLabel(building.status)}
                 </span>
               </div>
-              <div><strong>Location:</strong> ${building.village}, ${building.cell}</div>
-              <div><strong>Sector:</strong> ${building.sector}</div>
-              <div><strong>District:</strong> ${building.district}</div>
-              <div><strong>Province:</strong> ${building.province}</div>
+              <div><strong>Location:</strong> ${building.village}, ${building.cell}, ${building.sector}, ${building.district}, ${building.province}</div>
+        
               ${building.parcel_id ? `<div><strong>UPI:</strong> <code>${building.parcel_id}</code></div>` : ''}
-              <div class="text-xs text-gray-500 mt-2">
-                Lat: ${building.latitude.toFixed(6)}, Lng: ${building.longitude.toFixed(6)}
-              </div>
             </div>
           </div>
         `
