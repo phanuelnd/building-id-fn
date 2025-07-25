@@ -1724,9 +1724,26 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
         </div>
         
         <div class="space-y-2 text-sm">
-          <div class="bg-gray-100 p-2 rounded">
+          <div class="bg-gray-100 p-2 rounded relative">
             <strong>Building ID:</strong><br>
             <code class="text-xs">${building.building_id}</code>
+            <button
+              onclick="copyBuildingIDToClipboard('${building.building_id}', this)"
+              class="group absolute top-2 right-2 text-blue-600 hover:underline text-xs cursor-pointer"
+            >
+              <span class="icon-copy block relative">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+                </svg>
+                <span class="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Copy</span>
+              </span>
+              <span class="icon-check hidden relative">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-green-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                <span class="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Copied</span>
+              </span>
+            </button>
           </div>
           
           <div><strong>Status:</strong> 
@@ -1735,9 +1752,10 @@ Coordinates: ${this.building?.latitude.toFixed(6)}, ${this.building?.longitude.t
             </span>
           </div>
           
-          <div><strong>Location:</strong> ${building.village}, ${building.cell}</div>
-          <div><strong>Sector:</strong> ${building.sector}</div>
-          <div><strong>District:</strong> ${building.district}, ${building.province}</div>
+          <div>
+            <strong>Location:</strong>
+            ${building.village}, ${building.cell}, ${building.sector}, ${building.district}, ${building.province}
+          </div>
           
           ${building.parcel_id ? `<div><strong>UPI:</strong> <code class="text-xs">${building.parcel_id}</code></div>` : ''}
           
