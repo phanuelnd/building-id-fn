@@ -41,7 +41,7 @@ export type NavigationView = 'dashboard' |'users'| 'logout';
                 {{ currentUser.first_name.charAt(0).toUpperCase() }}{{ currentUser.last_name.charAt(0).toUpperCase() }}
               </div>
               <div class="ml-4">
-                <p class="text-blue-900 font-semibold drop-shadow-sm">{{ currentUser.first_name }} {{currentUser.first_name}}</p>
+                <p class="text-blue-900 font-semibold drop-shadow-sm">{{ currentUser.first_name }} {{currentUser.last_name}}</p>
                 <p class="text-blue-500 text-sm capitalize opacity-80">{{ currentUser.role }}</p>
               </div>
             </div>
